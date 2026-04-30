@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projectile Motion Calculator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Projectile Motion Calculator</h1>
+            <p class="subtitle">Calculate trajectory, range, max height, and flight time</p>
+        </header>
+
+        <div class="main-grid">
+            <section class="input-panel">
+                <h2>Parameters</h2>
+
+                <div class="input-group">
+                    <label for="velocity">Initial Velocity (m/s)</label>
+                    <input type="number" id="velocity" value="50" min="0.1" max="1000" step="0.1">
+                    <input type="range" id="velocitySlider" min="1" max="200" value="50" step="0.5">
+                </div>
+
+                <div class="input-group">
+                    <label for="angle">Launch Angle (&deg;)</label>
+                    <input type="number" id="angle" value="45" min="0" max="90" step="0.1">
+                    <input type="range" id="angleSlider" min="0" max="90" value="45" step="0.5">
+                </div>
+
+                <div class="input-group">
+                    <label for="height">Initial Height (m)</label>
+                    <input type="number" id="height" value="0" min="0" max="500" step="0.1">
+                    <input type="range" id="heightSlider" min="0" max="100" value="0" step="0.5">
+                </div>
+
+                <div class="input-group">
+                    <label for="gravity">Gravity (m/s&sup2;)</label>
+                    <select id="gravity">
+                        <option value="9.81" selected>Earth (9.81)</option>
+                        <option value="1.62">Moon (1.62)</option>
+                        <option value="3.72">Mars (3.72)</option>
+                        <option value="8.87">Venus (8.87)</option>
+                        <option value="24.79">Jupiter (24.79)</option>
+                        <option value="0">Zero-G (0)</option>
+                    </select>
+                </div>
+
+                <div class="button-row">
+                    <button id="btnCalculate" class="btn-primary">Calculate</button>
+                    <button id="btnAnimate" class="btn-secondary">Animate</button>
+                    <button id="btnReset" class="btn-outline">Reset</button>
+                </div>
+            </section>
+
+            <section class="results-panel">
+                <h2>Results</h2>
+                <div class="results-grid">
+                    <div class="result-card">
+                        <span class="result-label">Range</span>
+                        <span class="result-value" id="resRange">—</span>
+                        <span class="result-unit">m</span>
+                    </div>
+                    <div class="result-card">
+                        <span class="result-label">Max Height</span>
+                        <span class="result-value" id="resMaxHeight">—</span>
+                        <span class="result-unit">m</span>
+                    </div>
+                    <div class="result-card">
+                        <span class="result-label">Flight Time</span>
+                        <span class="result-value" id="resTime">—</span>
+                        <span class="result-unit">s</span>
+                    </div>
+                    <div class="result-card">
+                        <span class="result-label">Impact Velocity</span>
+                        <span class="result-value" id="resImpactV">—</span>
+                        <span class="result-unit">m/s</span>
+                    </div>
+                    <div class="result-card">
+                        <span class="result-label">V<sub>x</sub> (horizontal)</span>
+                        <span class="result-value" id="resVx">—</span>
+                        <span class="result-unit">m/s</span>
+                    </div>
+                    <div class="result-card">
+                        <span class="result-label">V<sub>y</sub> (vertical)</span>
+                        <span class="result-value" id="resVy">—</span>
+                        <span class="result-unit">m/s</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section class="canvas-section">
+            <h2>Trajectory</h2>
+            <div class="canvas-wrapper">
+                <canvas id="trajectoryCanvas"></canvas>
+            </div>
+        </section>
+
+        <section class="formulas-section">
+            <h2>Formulas Used</h2>
+            <div class="formulas-grid">
+                <div class="formula-card">
+                    <strong>Horizontal distance</strong>
+                    <code>x(t) = V₀ · cos(θ) · t</code>
+                </div>
+                <div class="formula-card">
+                    <strong>Vertical distance</strong>
+                    <code>y(t) = h₀ + V₀ · sin(θ) · t − ½gt²</code>
+                </div>
+                <div class="formula-card">
+                    <strong>Time of flight</strong>
+                    <code>t = (V₀·sin(θ) + √((V₀·sin(θ))² + 2g·h₀)) / g</code>
+                </div>
+                <div class="formula-card">
+                    <strong>Max height</strong>
+                    <code>H = h₀ + (V₀·sin(θ))² / (2g)</code>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
