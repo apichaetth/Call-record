@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShopThai - บล็อกและความรู้</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-brand">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="8" fill="#2563eb"/><path d="M7 14l5 5 9-9" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        ShopThai
+      </a>
+      <ul class="navbar-nav" id="mainNav">
+        <li><a href="index.html">หน้าแรก</a></li>
+        <li><a href="product.html">สินค้า</a></li>
+        <li><a href="blog.html" class="active">บล็อก</a></li>
+        <li><a href="contact.html">ติดต่อเรา</a></li>
+      </ul>
+      <div class="navbar-actions">
+        <a href="cart.html" class="btn btn-ghost btn-sm cart-icon">🛒<span class="cart-badge">0</span></a>
+        <a href="login.html" class="btn btn-outline btn-sm">เข้าสู่ระบบ</a>
+        <button class="hamburger"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<section class="section" style="padding-top:2rem;">
+  <div class="container">
+
+    <div class="blog-header-row">
+      <div>
+        <h1 style="font-size:1.85rem; font-weight:800; margin-bottom:.3rem;">บทความและความรู้</h1>
+        <p class="text-muted">อัปเดตเรื่องราวและไอเดียดีๆ ที่น่าสนใจสำหรับคุณ</p>
+      </div>
+      <div class="search-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="ค้นหาบทความ...">
+      </div>
+    </div>
+
+    <!-- Category Tabs -->
+    <div class="category-tabs">
+      <button class="cat-tab active">ทั้งหมด</button>
+      <button class="cat-tab">การตลาด</button>
+      <button class="cat-tab">ธุรกิจ</button>
+      <button class="cat-tab">เทคโนโลยี</button>
+      <button class="cat-tab">ไลฟ์สไตล์</button>
+      <button class="cat-tab">ออกแบบ</button>
+      <button class="cat-tab">เพิ่มเติม ▾</button>
+    </div>
+
+    <div class="blog-layout">
+      <!-- Main Content -->
+      <div>
+        <!-- Featured Post -->
+        <div class="featured-post">
+          <div class="featured-post-img">🏆</div>
+          <div class="featured-post-body">
+            <span class="badge badge-danger" style="margin-bottom:.5rem;">แนะนำ</span>
+            <h2 style="font-size:1.3rem; font-weight:800; margin-bottom:.5rem; line-height:1.35;">
+              <a href="blog-post.html" style="color:var(--text);">เทคนิคสร้างคอนเทนต์ให้โดนใจและเพิ่มยอดอ่านอย่างยั่งยืน</a>
+            </h2>
+            <p style="color:var(--text-muted); font-size:.9rem; margin-bottom:.75rem; line-height:1.7;">รวมเทคนิคและแนวทางที่ช่วยให้คอนเทนต์ของคุณน่าสนใจ น่าใจ ตรงกับผู้ชมเป้าหมาย และสร้างผลผลิตที่ดีระยะยาว...</p>
+            <div style="display:flex;gap:1.25rem;font-size:.82rem;color:var(--text-muted);flex-wrap:wrap;">
+              <span>👤 โดย Admin</span>
+              <span>📅 20 พฤษภาคม 2567</span>
+              <span>🏷 การตลาด</span>
+              <span>⏱ 8 นาทีในการอ่าน</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Article Cards -->
+        <div class="article-cards">
+          <div class="article-card">
+            <div class="article-card-img">📈</div>
+            <div class="article-card-body">
+              <p class="article-card-cat">การตลาด</p>
+              <h3 class="article-card-title"><a href="blog-post.html" style="color:var(--text);">7 วิธีเพิ่มประสิทธิภาพ SEO ให้เว็บไซต์โดดเด่น</a></h3>
+              <div class="article-card-meta"><span>👤 Admin</span><span>📅 18 พ.ค.</span><span>⏱ 8 นาที</span></div>
+            </div>
+          </div>
+          <div class="article-card">
+            <div class="article-card-img">💼</div>
+            <div class="article-card-body">
+              <p class="article-card-cat">ธุรกิจ</p>
+              <h3 class="article-card-title"><a href="blog-post.html" style="color:var(--text);">วางแผนธุรกิจอย่างไรให้เติบโตในปี 2024</a></h3>
+              <div class="article-card-meta"><span>👤 Admin</span><span>📅 16 พ.ค.</span><span>⏱ 12 นาที</span></div>
+            </div>
+          </div>
+          <div class="article-card">
+            <div class="article-card-img">🤖</div>
+            <div class="article-card-body">
+              <p class="article-card-cat">เทคโนโลยี</p>
+              <h3 class="article-card-title"><a href="blog-post.html" style="color:var(--text);">AI กับการเปลี่ยนแปลงของโลกธุรกิจ</a></h3>
+              <div class="article-card-meta"><span>👤 Admin</span><span>📅 15 พ.ค.</span><span>⏱ 7 นาที</span></div>
+            </div>
+          </div>
+          <div class="article-card">
+            <div class="article-card-img">🎨</div>
+            <div class="article-card-body">
+              <p class="article-card-cat">ออกแบบ</p>
+              <h3 class="article-card-title"><a href="blog-post.html" style="color:var(--text);">หลักการออกแบบเว็บไซต์ที่ดีและใช้งานง่าย</a></h3>
+              <div class="article-card-meta"><span>👤 Admin</span><span>📅 14 พ.ค.</span><span>⏱ 6 นาที</span></div>
+            </div>
+          </div>
+          <div class="article-card">
+            <div class="article-card-img">⚡</div>
+            <div class="article-card-body">
+              <p class="article-card-cat">ไลฟ์สไตล์</p>
+              <h3 class="article-card-title"><a href="blog-post.html" style="color:var(--text);">จัดการเวลาให้มีประสิทธิภาพด้วยเทคนิคง่ายๆ</a></h3>
+              <div class="article-card-meta"><span>👤 Admin</span><span>📅 12 พ.ค.</span><span>⏱ 5 นาที</span></div>
+            </div>
+          </div>
+          <div class="article-card">
+            <div class="article-card-img">📊</div>
+            <div class="article-card-body">
+              <p class="article-card-cat">การตลาด</p>
+              <h3 class="article-card-title"><a href="blog-post.html" style="color:var(--text);">เทรนด์การตลาดดิจิตอลที่ต้องจับตามในปีนี้</a></h3>
+              <div class="article-card-meta"><span>👤 Admin</span><span>📅 10 พ.ค.</span><span>⏱ 9 นาที</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination">
+          <button class="page-btn">‹</button>
+          <button class="page-btn">1</button>
+          <button class="page-btn active">2</button>
+          <button class="page-btn">3</button>
+          <button class="page-btn">4</button>
+          <span style="padding:0 .4rem;color:var(--text-muted);">...</span>
+          <button class="page-btn">12</button>
+          <button class="page-btn">›</button>
+        </div>
+        <div style="text-align:center;margin-bottom:1rem;">
+          <button class="btn btn-outline btn-sm">โหลดเพิ่ม ↻</button>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div>
+        <!-- Categories -->
+        <div class="sidebar-widget">
+          <h4 class="sidebar-widget-title">หมวดหมู่</h4>
+          <div class="cat-list-item"><span>การตลาด</span><span class="cat-count">24</span></div>
+          <div class="cat-list-item"><span>ธุรกิจ</span><span class="cat-count">18</span></div>
+          <div class="cat-list-item"><span>เทคโนโลยี</span><span class="cat-count">15</span></div>
+          <div class="cat-list-item"><span>ออกแบบ</span><span class="cat-count">12</span></div>
+          <div class="cat-list-item"><span>ไลฟ์สไตล์</span><span class="cat-count">10</span></div>
+          <a href="#" style="display:block;margin-top:.75rem;font-size:.85rem;">ดูทั้งหมด →</a>
+        </div>
+
+        <!-- Popular -->
+        <div class="sidebar-widget">
+          <h4 class="sidebar-widget-title">บทความยอดนิยม</h4>
+          <div class="popular-post">
+            <div class="popular-post-img">📈</div>
+            <div>
+              <p class="popular-post-title"><a href="blog-post.html" style="color:var(--text);">เทคนิคเพิ่มยอดขายจากทุกคลิกที่คลิกและอ่าน</a></p>
+              <p class="popular-post-date">25 พ.ค. 2567</p>
+            </div>
+          </div>
+          <div class="popular-post">
+            <div class="popular-post-img">🔧</div>
+            <div>
+              <p class="popular-post-title"><a href="blog-post.html" style="color:var(--text);">เครื่องมือ SEO ที่ต้องรู้จักในปี 2024</a></p>
+              <p class="popular-post-date">22 พ.ค. 2567</p>
+            </div>
+          </div>
+          <div class="popular-post">
+            <div class="popular-post-img">👤</div>
+            <div>
+              <p class="popular-post-title"><a href="blog-post.html" style="color:var(--text);">5 วิธีสร้าง Personal Brand ให้โดดเด่น</a></p>
+              <p class="popular-post-date">19 พ.ค. 2567</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Newsletter -->
+        <div class="sidebar-widget" style="background:linear-gradient(135deg,#eff6ff,#f0fdf4);">
+          <h4 class="sidebar-widget-title">รับข่าวสารและบทความดีๆ ส่งตรงถึงอีเมลคุณ</h4>
+          <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:.75rem;">ไม่ผิดหวังกับคอนเทนต์ที่ดีและน่าอ่าน</p>
+          <div class="newsletter-input-row">
+            <input type="email" class="form-control" placeholder="กรอกอีเมลของคุณ" style="font-size:.85rem;">
+            <button class="btn btn-primary btn-block">สมัครรับข่าวสาร</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">🛒 ShopThai</div>
+        <p class="footer-brand-desc">แพลตฟอร์มอีคอมเมิร์ซอันดับ 1 สำหรับธุรกิจไทย</p>
+        <div class="social-links"><a href="#">f</a><a href="#">X</a><a href="#">in</a><a href="#">yt</a></div>
+      </div>
+      <div class="footer-col"><h4>เมนู</h4><ul><li><a href="index.html">หน้าแรก</a></li><li><a href="#">หมวดหมู่</a></li><li><a href="blog.html">บทความ</a></li><li><a href="contact.html">ติดต่อเรา</a></li></ul></div>
+      <div class="footer-col"><h4>หมวดหมู่ยอดนิยม</h4><ul><li><a href="#">การตลาด</a></li><li><a href="#">ธุรกิจ</a></li><li><a href="#">เทคโนโลยี</a></li><li><a href="#">SEO</a></li><li><a href="#">ไลฟ์สไตล์</a></li></ul></div>
+      <div class="footer-col"><h4>สมัครรับข่าวสาร</h4>
+        <div class="footer-newsletter"><input type="email" placeholder="อีเมลของคุณ"><button class="btn btn-primary btn-sm">สมัคร</button></div>
+      </div>
+    </div>
+    <div class="footer-bottom"><span>© 2024 ShopThai</span><span>นโยบายความเป็นส่วนตัว | ข้อกำหนดการใช้งาน</span></div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

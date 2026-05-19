@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShopThai - ตะกร้าสินค้า</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-brand">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="8" fill="#2563eb"/><path d="M7 14l5 5 9-9" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        ShopThai
+      </a>
+      <ul class="navbar-nav" id="mainNav">
+        <li><a href="index.html">หน้าแรก</a></li>
+        <li><a href="product.html">สินค้า</a></li>
+        <li><a href="contact.html">ติดต่อเรา</a></li>
+      </ul>
+      <div class="navbar-actions">
+        <a href="cart.html" class="btn btn-primary btn-sm cart-icon">🛒 ตะกร้า<span class="cart-badge">0</span></a>
+        <button class="hamburger"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<section class="section" style="padding-top:2rem;">
+  <div class="container">
+    <h1 style="font-size:1.5rem; font-weight:800; margin-bottom:1.5rem;">🛒 ตะกร้าสินค้า (3 รายการ)</h1>
+
+    <div class="cart-layout">
+      <!-- Items -->
+      <div>
+        <div class="card">
+          <table class="cart-table">
+            <thead>
+              <tr>
+                <th>สินค้า</th>
+                <th>ราคา</th>
+                <th>จำนวน</th>
+                <th>รวม</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="cart-row" data-price="490">
+                <td>
+                  <div class="cart-item-info">
+                    <div class="cart-thumb">👕</div>
+                    <div>
+                      <div class="cart-item-name">เสื้อยืดคอตตอน</div>
+                      <div class="cart-item-variant">สีขาว / ไซส์ M</div>
+                    </div>
+                  </div>
+                </td>
+                <td>฿490</td>
+                <td>
+                  <div class="qty-control" style="justify-content:flex-start;">
+                    <button class="qty-btn" data-action="minus">−</button>
+                    <span class="qty-val">1</span>
+                    <button class="qty-btn" data-action="plus">+</button>
+                  </div>
+                </td>
+                <td class="fw-bold row-total">฿490</td>
+                <td><button class="delete-btn" title="ลบรายการ">🗑</button></td>
+              </tr>
+              <tr class="cart-row" data-price="1290">
+                <td>
+                  <div class="cart-item-info">
+                    <div class="cart-thumb">👖</div>
+                    <div>
+                      <div class="cart-item-name">กางเกงยีนส์</div>
+                      <div class="cart-item-variant">สีน้ำเงิน / ไซส์ 32</div>
+                    </div>
+                  </div>
+                </td>
+                <td>฿1,290</td>
+                <td>
+                  <div class="qty-control" style="justify-content:flex-start;">
+                    <button class="qty-btn" data-action="minus">−</button>
+                    <span class="qty-val">1</span>
+                    <button class="qty-btn" data-action="plus">+</button>
+                  </div>
+                </td>
+                <td class="fw-bold row-total">฿1,290</td>
+                <td><button class="delete-btn">🗑</button></td>
+              </tr>
+              <tr class="cart-row" data-price="390">
+                <td>
+                  <div class="cart-item-info">
+                    <div class="cart-thumb">🧢</div>
+                    <div>
+                      <div class="cart-item-name">หมวกแก๊ป</div>
+                      <div class="cart-item-variant">สีดำ</div>
+                    </div>
+                  </div>
+                </td>
+                <td>฿390</td>
+                <td>
+                  <div class="qty-control" style="justify-content:flex-start;">
+                    <button class="qty-btn" data-action="minus">−</button>
+                    <span class="qty-val">1</span>
+                    <button class="qty-btn" data-action="plus">+</button>
+                  </div>
+                </td>
+                <td class="fw-bold row-total">฿390</td>
+                <td><button class="delete-btn">🗑</button></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="padding:1rem 1.25rem; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+            <a href="product.html" style="color:var(--text-muted); font-size:.9rem;">← เลือกซื้อสินค้าต่อ</a>
+            <div class="promo-row" style="max-width:320px; width:100%;">
+              <input type="text" id="promo-input" class="form-control" placeholder="ใส่รหัสส่วนลดของคุณ">
+              <button id="apply-promo" class="btn btn-ghost btn-sm">ใช้โค้ด</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trust -->
+        <div style="margin-top:1rem; padding:1rem; background:#fff; border-radius:var(--radius); border:1px solid var(--border);">
+          <div class="trust-badges">
+            <div class="trust-badge">✅ จัดส่งรวดเร็ว 1-3 วันทำการ</div>
+            <div class="trust-badge">↩ ยกเลิก/คืนสินค้าได้ภายใน 7 วัน</div>
+            <div class="trust-badge">🔒 ชำระเงินปลอดภัย ข้อมูลของคุณได้รับการคุ้มครอง</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div>
+        <div class="card card-body">
+          <h3 style="font-size:1rem; font-weight:700; margin-bottom:1rem;">สรุปคำสั่งซื้อ</h3>
+          <div class="order-summary-row">
+            <span>ราคารวมสินค้า (3 รายการ)</span>
+            <span id="cart-subtotal">฿2,170</span>
+          </div>
+          <div class="order-summary-row">
+            <span>ค่าจัดส่ง</span>
+            <span>฿50</span>
+          </div>
+          <div class="order-total">
+            <span>ราคารวมทั้งหมด</span>
+            <span id="cart-grand" style="color:var(--danger);">฿2,220</span>
+          </div>
+          <p style="font-size:.78rem; color:var(--text-muted); margin-bottom:1rem;">(รวมภาษีมูลค่าเพิ่มแล้ว)</p>
+          <a href="checkout.html" class="btn btn-danger btn-block btn-lg">🔒 ดำเนินการชำระเงิน</a>
+          <p style="text-align:center; font-size:.78rem; color:var(--text-muted); margin-top:.6rem;">ชำระเงินอย่างปลอดภัย SSL 256-bit</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-bottom" style="border-top:none;padding-top:0;">
+      <span>© 2024 ShopThai. สงวนลิขสิทธิ์</span>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

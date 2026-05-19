@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShopThai - ชำระเงิน</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-brand">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="8" fill="#2563eb"/><path d="M7 14l5 5 9-9" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        ShopThai
+      </a>
+      <div class="navbar-actions">
+        <div style="display:flex;align-items:center;gap:.4rem;color:var(--secondary);font-size:.88rem;font-weight:600;">🔒 ชำระเงินปลอดภัย</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Step Indicator -->
+<div class="container">
+  <div class="step-indicator">
+    <div class="step done">
+      <div class="step-wrap">
+        <div class="step-num">✓</div>
+        <div class="step-label">ตะกร้า</div>
+      </div>
+    </div>
+    <div class="step-connector done"></div>
+    <div class="step active">
+      <div class="step-wrap">
+        <div class="step-num">1</div>
+        <div class="step-label">ข้อมูลจัดส่ง</div>
+      </div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step">
+      <div class="step-wrap">
+        <div class="step-num">2</div>
+        <div class="step-label">ชำระเงิน</div>
+      </div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step">
+      <div class="step-wrap">
+        <div class="step-num">3</div>
+        <div class="step-label">ตรวจสอบ</div>
+      </div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step">
+      <div class="step-wrap">
+        <div class="step-num">4</div>
+        <div class="step-label">เสร็จสมบูรณ์</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section style="padding:0 0 3rem;">
+  <div class="container">
+    <div class="checkout-layout">
+
+      <!-- Left: Forms -->
+      <div>
+        <!-- Shipping -->
+        <div class="card card-body checkout-section">
+          <h3 class="checkout-section-title">🚚 ข้อมูลจัดส่ง</h3>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>ชื่อ - นามสกุล *</label>
+              <input type="text" class="form-control" placeholder="ชื่อ - นามสกุล">
+            </div>
+            <div class="form-group">
+              <label>เบอร์โทรศัพท์ *</label>
+              <input type="tel" class="form-control" placeholder="0XX-XXX-XXXX">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>ที่อยู่ *</label>
+            <input type="text" class="form-control" placeholder="บ้านเลขที่ ถนน ซอย">
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>แขวง / ตำบล *</label>
+              <input type="text" class="form-control" placeholder="แขวง/ตำบล">
+            </div>
+            <div class="form-group">
+              <label>เขต / อำเภอ *</label>
+              <input type="text" class="form-control" placeholder="เขต/อำเภอ">
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>จังหวัด *</label>
+              <select class="form-control">
+                <option>กรุงเทพมหานคร</option>
+                <option>เชียงใหม่</option>
+                <option>ภูเก็ต</option>
+                <option>ขอนแก่น</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>รหัสไปรษณีย์ *</label>
+              <input type="text" class="form-control" placeholder="10xxx">
+            </div>
+          </div>
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:.88rem;cursor:pointer;color:var(--text-muted);">
+            <input type="checkbox"> บันทึกที่อยู่นี้สำหรับการจัดส่งครั้งต่อไป
+          </label>
+        </div>
+
+        <!-- Billing -->
+        <div class="card card-body checkout-section">
+          <h3 class="checkout-section-title">📋 ที่อยู่สำหรับออกใบเสร็จ</h3>
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:.9rem;cursor:pointer;">
+            <input type="checkbox" checked> ใช้ที่อยู่เดียวกับข้อมูลจัดส่ง
+          </label>
+        </div>
+
+        <!-- Shipping Method -->
+        <div class="card card-body checkout-section">
+          <h3 class="checkout-section-title">🚛 วิธีการจัดส่ง</h3>
+          <div class="shipping-method-options">
+            <div class="shipping-opt selected" onclick="selectShipping(this)">
+              <input type="radio" name="ship" checked>
+              <div class="shipping-opt-info">
+                <h5>📦 จัดส่งมาตรฐาน</h5>
+                <p>2-4 วันทำการ</p>
+                <strong style="color:var(--primary);">฿50</strong>
+              </div>
+            </div>
+            <div class="shipping-opt" onclick="selectShipping(this)">
+              <input type="radio" name="ship">
+              <div class="shipping-opt-info">
+                <h5>⚡ จัดส่งด่วน</h5>
+                <p>1-2 วันทำการ</p>
+                <strong style="color:var(--primary);">฿100</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment -->
+        <div class="card card-body checkout-section">
+          <h3 class="checkout-section-title">💳 วิธีการชำระเงิน</h3>
+          <div class="payment-options">
+            <div class="payment-opt selected" onclick="selectPayment(this)">
+              <div class="payment-opt-left">
+                <input type="radio" name="pay" checked> บัตรเครดิต / เดบิต
+              </div>
+              <div class="payment-icons">
+                <span class="payment-icon">VISA</span>
+                <span class="payment-icon">MC</span>
+                <span class="payment-icon">JCB</span>
+              </div>
+            </div>
+            <div class="payment-opt" onclick="selectPayment(this)">
+              <div class="payment-opt-left">
+                <input type="radio" name="pay"> โอนเงินผ่านธนาคาร
+              </div>
+              <div class="payment-icons"><span class="payment-icon" style="background:#0056a0;color:#fff;">BANK</span></div>
+            </div>
+            <div class="payment-opt" onclick="selectPayment(this)">
+              <div class="payment-opt-left">
+                <input type="radio" name="pay"> พร้อมเพย์ (PromptPay)
+              </div>
+              <div class="payment-icons"><span class="payment-icon" style="background:#2463ae;color:#fff;">PP</span></div>
+            </div>
+            <div class="payment-opt" onclick="selectPayment(this)">
+              <div class="payment-opt-left">
+                <input type="radio" name="pay"> ชำระผ่าน e-Wallet
+              </div>
+              <div class="payment-icons">
+                <span class="payment-icon" style="background:#e91e8c;color:#fff;">TM</span>
+                <span class="payment-icon" style="background:#06c755;color:#fff;">LINE</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Security -->
+        <div class="card card-body" style="background:#f0fdf4;">
+          <div style="font-size:.85rem; color:var(--text-muted); display:flex;gap:.5rem;align-items:flex-start;margin-bottom:.75rem;">
+            🔒 ข้อมูลของคุณปลอดภัยและเข้ารหัสด้วย SSL 256-bit
+          </div>
+          <div class="security-badges">
+            <div class="security-badge">🔒 SSL SECURE</div>
+            <div class="security-badge">PCI DSS</div>
+            <div class="security-badge">✓ VERIFIED BY VISA</div>
+          </div>
+        </div>
+
+        <!-- Help -->
+        <div class="card card-body" style="background:#fefce8; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+          <div style="font-size:.9rem;">❓ ต้องการความช่วยเหลือ? ติดต่อได้ทุกวัน 08:00 - 20:00 น.</div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm">💬 แชทกับเรา</button>
+            <button class="btn btn-ghost btn-sm">📞 02-123-4567</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Summary -->
+      <div>
+        <div class="card card-body" style="position:sticky;top:76px;">
+          <h3 style="font-size:1rem; font-weight:700; margin-bottom:1rem;">สรุปคำสั่งซื้อ</h3>
+
+          <div style="display:flex;gap:.75rem;align-items:center;padding:.75rem 0;border-bottom:1px solid var(--border);">
+            <div style="width:52px;height:52px;background:linear-gradient(135deg,#dbeafe,#bbf7d0);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;">👕</div>
+            <div style="flex:1;">
+              <p style="font-size:.88rem;font-weight:600;">เสื้อยืดคอตตอน</p>
+              <p style="font-size:.78rem;color:var(--text-muted);">สีขาว / M × 1</p>
+            </div>
+            <span style="font-weight:600;font-size:.88rem;">฿390</span>
+          </div>
+
+          <div style="margin:1rem 0;">
+            <div class="order-summary-row"><span>ราคาสินค้า</span><span>฿390</span></div>
+            <div class="order-summary-row"><span>ค่าจัดส่ง</span><span>฿50</span></div>
+            <div class="order-summary-row"><span>ส่วนลด</span><span style="color:var(--danger);">-฿30</span></div>
+          </div>
+
+          <div class="order-total">
+            <span>รวมทั้งสิ้น</span>
+            <span style="color:var(--danger);">฿410</span>
+          </div>
+
+          <!-- Coupon -->
+          <div style="margin:1rem 0;">
+            <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:.5rem;">คูปอง / ส่วนลด</p>
+            <div style="display:flex;gap:.5rem;">
+              <input type="text" class="form-control" placeholder="กรอกรหัสคูปอง" style="font-size:.85rem;">
+              <button class="btn btn-ghost btn-sm">ใช้คูปอง</button>
+            </div>
+          </div>
+
+          <!-- Review checklist -->
+          <div style="background:var(--bg);border-radius:var(--radius-sm);padding:.85rem;margin-bottom:1rem;">
+            <p style="font-size:.82rem;font-weight:600;margin-bottom:.5rem;">ตรวจสอบรายการสั่งซื้อ</p>
+            <div style="font-size:.8rem;color:var(--secondary);line-height:2;">
+              ✓ ข้อมูลจัดส่งถูกต้อง<br>
+              ✓ วิธีการจัดส่งถูกต้อง<br>
+              ✓ วิธีการชำระเงินถูกต้อง
+            </div>
+            <a href="#" style="font-size:.8rem;">แก้ไขข้อมูล →</a>
+          </div>
+
+          <button class="btn btn-danger btn-block btn-lg">🔒 สั่งซื้อและชำระเงิน</button>
+          <p style="text-align:center;font-size:.75rem;color:var(--text-muted);margin-top:.5rem;">คุณจะถูกนำไปยังหน้าชำระเงินที่ปลอดภัย</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-bottom" style="border-top:none;padding-top:0;">
+      <span>© 2024 ShopThai</span>
+      <div style="display:flex;gap:1rem;">
+        <a href="#" style="color:#94a3b8;font-size:.82rem;">เกี่ยวกับเรา</a>
+        <a href="#" style="color:#94a3b8;font-size:.82rem;">นโยบายความเป็นส่วนตัว</a>
+        <a href="#" style="color:#94a3b8;font-size:.82rem;">ข้อกำหนดการให้บริการ</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+<script>
+function selectShipping(el) {
+  document.querySelectorAll('.shipping-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function selectPayment(el) {
+  document.querySelectorAll('.payment-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+</script>
+</body>
+</html>

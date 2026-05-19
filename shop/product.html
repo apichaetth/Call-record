@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShopThai - สมาร์ทวอทช์ รุ่น Pro 2</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-brand">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="8" fill="#2563eb"/><path d="M7 14l5 5 9-9" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        ShopThai
+      </a>
+      <ul class="navbar-nav" id="mainNav">
+        <li><a href="index.html">หน้าแรก</a></li>
+        <li><a href="product.html" class="active">สินค้า</a></li>
+        <li><a href="blog.html">บล็อก</a></li>
+        <li><a href="contact.html">ติดต่อเรา</a></li>
+      </ul>
+      <div class="navbar-actions">
+        <a href="cart.html" class="btn btn-ghost btn-sm cart-icon">🛒 ตะกร้า<span class="cart-badge">0</span></a>
+        <a href="login.html" class="btn btn-outline btn-sm">เข้าสู่ระบบ</a>
+        <button class="hamburger"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <nav class="breadcrumb">
+    <a href="index.html">หน้าหลัก</a> › <a href="#">สินค้า</a> › <span>สมาร์ทวอทช์ รุ่น Pro 2</span>
+  </nav>
+</div>
+
+<section class="section" style="padding-top:1rem;">
+  <div class="container">
+    <div class="product-layout">
+      <!-- Gallery -->
+      <div class="product-gallery">
+        <div class="main-img">
+          <svg width="160" height="160" viewBox="0 0 160 160" fill="none">
+            <rect x="50" y="20" width="60" height="80" rx="12" fill="#93c5fd"/>
+            <rect x="58" y="30" width="44" height="56" rx="6" fill="#1d4ed8"/>
+            <rect x="62" y="38" width="36" height="16" rx="3" fill="#60a5fa"/>
+            <rect x="64" y="60" width="12" height="4" rx="2" fill="#93c5fd"/>
+            <rect x="80" y="60" width="16" height="4" rx="2" fill="#93c5fd"/>
+            <rect x="62" y="70" width="32" height="4" rx="2" fill="#3b82f6"/>
+            <rect x="62" y="100" width="36" height="8" rx="4" fill="#1d4ed8"/>
+            <rect x="65" y="18" width="12" height="4" rx="2" fill="#1d4ed8"/>
+            <rect x="83" y="18" width="12" height="4" rx="2" fill="#1d4ed8"/>
+            <rect x="65" y="102" width="12" height="8" rx="2" fill="#1e40af"/>
+            <rect x="83" y="102" width="12" height="8" rx="2" fill="#1e40af"/>
+          </svg>
+        </div>
+        <div class="thumb-row">
+          <div class="thumb active" style="display:flex;align-items:center;justify-content:center;">⌚</div>
+          <div class="thumb" style="display:flex;align-items:center;justify-content:center;">🔵</div>
+          <div class="thumb" style="display:flex;align-items:center;justify-content:center;">⚫</div>
+          <div class="thumb" style="display:flex;align-items:center;justify-content:center;">⚪</div>
+        </div>
+      </div>
+
+      <!-- Info -->
+      <div>
+        <div class="badge badge-success" style="margin-bottom:.75rem;">✅ มีสินค้า พร้อมส่ง</div>
+        <h1 style="font-size:1.6rem; font-weight:800; margin-bottom:.5rem;">สมาร์ทวอทช์ รุ่น Pro 2</h1>
+        <div class="product-rating">
+          <span class="stars">★★★★½</span>
+          <span>(128 รีวิว)</span>
+          <span>|</span>
+          <span>ขายแล้ว 2.4K ชิ้น</span>
+        </div>
+        <p style="color:var(--text-muted); font-size:.9rem; line-height:1.7;">ดีไซน์พรีเมียม ติดตามสุขภาพ แม่นยำ แบตอึด กันน้ำ IP68 รองรับ iOS และ Android</p>
+        <div class="product-price">
+          ฿2,990 <span class="old-price">฿4,290</span>
+          <span class="badge badge-danger" style="font-size:.75rem; margin-left:.5rem;">ลด 30%</span>
+        </div>
+
+        <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
+          <div>
+            <p style="font-size:.82rem; color:var(--text-muted); margin-bottom:.4rem;">สี</p>
+            <div style="display:flex; gap:.5rem;">
+              <div style="width:28px;height:28px;border-radius:50%;background:#1d4ed8;border:2px solid #2563eb;cursor:pointer;"></div>
+              <div style="width:28px;height:28px;border-radius:50%;background:#1e293b;cursor:pointer;"></div>
+              <div style="width:28px;height:28px;border-radius:50%;background:#e2e8f0;cursor:pointer;border:1px solid #cbd5e1;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="qty-control">
+          <span style="font-size:.88rem; color:var(--text-muted);">จำนวน:</span>
+          <button class="qty-btn" data-action="minus">−</button>
+          <span class="qty-val">1</span>
+          <button class="qty-btn" data-action="plus">+</button>
+        </div>
+
+        <div style="display:flex; gap:.75rem; flex-wrap:wrap; margin-bottom:1.25rem;">
+          <button class="btn btn-primary btn-lg" onclick="addToCart(1,'สมาร์ทวอทช์ Pro 2',2990)">🛒 เพิ่มลงตะกร้า</button>
+          <button class="wishlist-btn">❤ เพิ่มในรายการโปรด</button>
+        </div>
+
+        <div style="display:flex; gap:1.5rem; flex-wrap:wrap; padding:1rem; background:var(--bg); border-radius:var(--radius-sm);">
+          <div style="font-size:.82rem; color:var(--text-muted);">🚚 จัดส่ง 1-3 วัน</div>
+          <div style="font-size:.82rem; color:var(--text-muted);">↩ คืนสินค้าได้ 7 วัน</div>
+          <div style="font-size:.82rem; color:var(--text-muted);">🛡 รับประกัน 1 ปี</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div style="margin-top:2.5rem;">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="detail">รายละเอียด</button>
+        <button class="tab-btn" data-tab="spec">สเปก</button>
+        <button class="tab-btn" data-tab="shipping">การจัดส่งและคืนสินค้า</button>
+        <button class="tab-btn" data-tab="faq">คำถามที่พบบ่อย</button>
+      </div>
+
+      <div class="tab-content active" data-tab="detail">
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-card-icon">💓</div>
+            <div><h5>ติดตามสุขภาพ 24 ชม.</h5><p>วัดอัตราการเต้นหัวใจ นอนหลับ และความเครียด</p></div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">🔋</div>
+            <div><h5>แบตเตอรี่ใช้งานนาน</h5><p>ใช้งานได้ต่อเนื่อง 10 วัน ต่อการชาร์จ 1 ครั้ง</p></div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">💧</div>
+            <div><h5>กันน้ำ IP68</h5><p>ใช้งานได้ในน้ำ ทุกกิจกรรม ไม่ต้องกลัวเปียก</p></div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card-icon">📱</div>
+            <div><h5>เชื่อมต่อได้ครบ</h5><p>รองรับ iOS และ Android อัปเดตข้อมูลอัตโนมัติ</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-content" data-tab="spec">
+        <table style="width:100%; border-collapse:collapse; font-size:.9rem;">
+          <tr><td style="padding:.6rem; border-bottom:1px solid var(--border); color:var(--text-muted); width:40%;">หน้าจอ</td><td style="padding:.6rem; border-bottom:1px solid var(--border);">AMOLED 1.4 นิ้ว 454x454px</td></tr>
+          <tr><td style="padding:.6rem; border-bottom:1px solid var(--border); color:var(--text-muted);">แบตเตอรี่</td><td style="padding:.6rem; border-bottom:1px solid var(--border);">420mAh / 10 วัน</td></tr>
+          <tr><td style="padding:.6rem; border-bottom:1px solid var(--border); color:var(--text-muted);">กันน้ำ</td><td style="padding:.6rem; border-bottom:1px solid var(--border);">IP68 / 50M</td></tr>
+          <tr><td style="padding:.6rem; border-bottom:1px solid var(--border); color:var(--text-muted);">เซ็นเซอร์</td><td style="padding:.6rem; border-bottom:1px solid var(--border);">HR, SpO2, อุณหภูมิ, GPS</td></tr>
+          <tr><td style="padding:.6rem; color:var(--text-muted);">น้ำหนัก</td><td style="padding:.6rem;">48g</td></tr>
+        </table>
+      </div>
+
+      <div class="tab-content" data-tab="shipping">
+        <p style="line-height:1.8; color:var(--text-muted); font-size:.92rem;">จัดส่งทั่วประเทศภายใน 1-3 วันทำการ คืนสินค้าได้ภายใน 7 วัน กรณีสินค้าชำรุดหรือผิดรายการ ค่าจัดส่ง ฿50 สำหรับคำสั่งซื้อต่ำกว่า ฿500 — ฟรีค่าจัดส่งสำหรับคำสั่งซื้อ ฿500 ขึ้นไป</p>
+      </div>
+
+      <div class="tab-content" data-tab="faq">
+        <div class="faq-item">
+          <div class="faq-question">รองรับ iPhone ได้ไหม? <span class="faq-chevron">▼</span></div>
+          <div class="faq-answer">รองรับ iOS 12 ขึ้นไป และ Android 6.0 ขึ้นไป ผ่านแอป ShopHealth</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">สายเปลี่ยนได้ไหม? <span class="faq-chevron">▼</span></div>
+          <div class="faq-answer">ได้ครับ รองรับสาย 22mm มาตรฐาน มีให้เลือกหลายสี</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reviews -->
+    <div style="margin-top:2.5rem;">
+      <h2 style="font-size:1.2rem; font-weight:700; margin-bottom:1rem;">รีวิวจากลูกค้า</h2>
+      <div class="review-card">
+        <div class="review-header">
+          <span class="reviewer">คุณธรรมา</span>
+          <span class="review-date">20 พ.ค. 2567</span>
+        </div>
+        <div class="stars" style="font-size:.9rem;">★★★★★</div>
+        <p style="margin-top:.4rem; font-size:.88rem; color:var(--text-muted);">ใช้งานง่าย ดีไซน์สวยมาก แบตอยู่นาน คุ้มค่ากับราคามากๆ</p>
+      </div>
+      <div class="review-card">
+        <div class="review-header">
+          <span class="reviewer">คุณเสกสรร</span>
+          <span class="review-date">15 พ.ค. 2567</span>
+        </div>
+        <div class="stars" style="font-size:.9rem;">★★★★☆</div>
+        <p style="margin-top:.4rem; font-size:.88rem; color:var(--text-muted);">ฟีเจอร์ครบ วัดชีพจรแม่นยำ บริการหลังการขายดี</p>
+      </div>
+    </div>
+
+    <!-- Related -->
+    <div style="margin-top:2.5rem;">
+      <h2 style="font-size:1.2rem; font-weight:700; margin-bottom:1rem;">สินค้าที่เกี่ยวข้อง</h2>
+      <div class="related-grid">
+        <div class="product-card"><div class="product-card-img">⌚</div><div class="product-card-body"><p class="product-card-title">สมาร์ทวอทช์ Lite</p><p class="product-card-price">฿1,990</p></div></div>
+        <div class="product-card"><div class="product-card-img">📱</div><div class="product-card-body"><p class="product-card-title">สายชาร์จไฮโซ</p><p class="product-card-price">฿490</p></div></div>
+        <div class="product-card"><div class="product-card-img">🎧</div><div class="product-card-body"><p class="product-card-title">หูฟัง Sport Pro</p><p class="product-card-price">฿1,290</p></div></div>
+        <div class="product-card"><div class="product-card-img">💻</div><div class="product-card-body"><p class="product-card-title">เครื่องวัดความดัน</p><p class="product-card-price">฿690</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-bottom" style="border-top:none; padding-top:0;">
+      <span>© 2024 ShopThai. สงวนลิขสิทธิ์</span>
+      <div style="display:flex;gap:1rem;">
+        <a href="index.html" style="color:#94a3b8;">หน้าแรก</a>
+        <a href="cart.html" style="color:#94a3b8;">ตะกร้า</a>
+        <a href="contact.html" style="color:#94a3b8;">ติดต่อเรา</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

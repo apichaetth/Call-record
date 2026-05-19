@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShopThai - สมัครสมาชิก</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="auth-page">
+  <div class="auth-card card">
+    <div class="card-body" style="padding:2.25rem;">
+
+      <div class="auth-logo">
+        <div class="auth-logo-icon">🛒</div>
+        <div class="auth-logo-text">ShopThai</div>
+      </div>
+
+      <h1 class="auth-title">สร้างบัญชีของคุณ</h1>
+
+      <div class="benefit-tag">
+        🛡 สมัครง่าย ปลอดภัย ใช้งานได้ทันที — เพลิดเพลินกับบริการและสิทธิ์ประโยชน์มากมาย
+      </div>
+
+      <form class="validate" data-success="สมัครสมาชิกสำเร็จ! ยินดีต้อนรับ">
+        <div class="form-group">
+          <label for="name">ชื่อ - นามสกุล</label>
+          <div class="input-icon">
+            <span class="icon">👤</span>
+            <input type="text" id="name" class="form-control" placeholder="ชื่อ - นามสกุล" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">อีเมล</label>
+          <div class="input-icon">
+            <span class="icon">✉</span>
+            <input type="email" id="email" class="form-control" placeholder="อีเมล" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">รหัสผ่าน</label>
+          <div class="password-wrapper">
+            <input type="password" id="password" class="form-control" placeholder="รหัสผ่าน (อย่างน้อย 8 ตัวอักษร)" required>
+            <button type="button" class="toggle-pw">👁</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="confirm">ยืนยันรหัสผ่าน</label>
+          <div class="password-wrapper">
+            <input type="password" id="confirm" class="form-control" placeholder="ยืนยันรหัสผ่าน" required>
+            <button type="button" class="toggle-pw">👁</button>
+          </div>
+        </div>
+
+        <div class="form-group" style="display:flex; align-items:flex-start; gap:.6rem;">
+          <input type="checkbox" id="consent" required style="margin-top:.25rem; flex-shrink:0;">
+          <label for="consent" style="font-size:.85rem; color:var(--text-muted); cursor:pointer;">
+            ฉันยอมรับ <a href="#">ข้อกำหนดในการให้บริการ</a> และ <a href="#">นโยบายความเป็นส่วนตัว</a>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg">สมัครสมาชิก</button>
+      </form>
+
+      <div class="divider">หรือสมัครด้วย</div>
+
+      <button class="social-btn"><span>🟥</span> Google</button>
+      <button class="social-btn"><span>🟦</span> Facebook</button>
+      <button class="social-btn"><span>⬛</span> Apple</button>
+
+      <p style="text-align:center; margin-top:1.25rem; font-size:.9rem; color:var(--text-muted);">
+        มีบัญชีอยู่แล้ว? <a href="login.html">เข้าสู่ระบบ</a>
+      </p>
+
+      <div class="privacy-note">
+        🔒 เราให้ความสำคัญกับความปลอดภัยของข้อมูลคุณ ข้อมูลของคุณจะถูกเก็บรักษาอย่างปลอดภัย
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShopThai - ติดต่อเรา</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-brand">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="8" fill="#2563eb"/><path d="M7 14l5 5 9-9" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        ShopThai
+      </a>
+      <ul class="navbar-nav" id="mainNav">
+        <li><a href="index.html">หน้าแรก</a></li>
+        <li><a href="product.html">สินค้า</a></li>
+        <li><a href="blog.html">บล็อก</a></li>
+        <li><a href="contact.html" class="active">ติดต่อเรา</a></li>
+      </ul>
+      <div class="navbar-actions">
+        <a href="cart.html" class="btn btn-ghost btn-sm cart-icon">🛒<span class="cart-badge">0</span></a>
+        <a href="login.html" class="btn btn-outline btn-sm">เข้าสู่ระบบ</a>
+        <a href="signup.html" class="btn btn-primary btn-sm">ปรึกษาฟรี</a>
+        <button class="hamburger"><span></span><span></span><span></span></button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section style="background:linear-gradient(135deg,#eff6ff,#f0fdf4); padding:3.5rem 0 2.5rem;">
+  <div class="container">
+    <div class="grid-2" style="align-items:center; gap:3rem;">
+      <div>
+        <h1 style="font-size:2.2rem; font-weight:800; margin-bottom:.75rem;">ติดต่อเรา</h1>
+        <p style="color:var(--text-muted); font-size:1rem; line-height:1.7;">เราพร้อมรับฟังและให้คำปรึกษา ทีมงานของเรายินดีช่วยเหลือคุณ</p>
+      </div>
+      <div style="background:linear-gradient(135deg,#dbeafe,#bbf7d0); border-radius:var(--radius); height:180px; display:flex; align-items:center; justify-content:center; font-size:4rem;">📞</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:2rem;">
+  <div class="container">
+    <div class="contact-layout">
+
+      <!-- Form -->
+      <div>
+        <div class="card card-body" style="margin-bottom:1.5rem;">
+          <h2 style="font-size:1.1rem; font-weight:700; margin-bottom:1.25rem;">📤 ส่งข้อความถึงเรา</h2>
+          <form class="validate" data-success="ส่งข้อความเรียบร้อยแล้ว เราจะติดต่อกลับภายใน 24 ชั่วโมง">
+            <div class="grid-2">
+              <div class="form-group">
+                <label>ชื่อ-นามสกุล *</label>
+                <input type="text" class="form-control" placeholder="ชื่อ-นามสกุล" required>
+              </div>
+              <div class="form-group">
+                <label>อีเมล *</label>
+                <input type="email" class="form-control" placeholder="อีเมล" required>
+              </div>
+            </div>
+            <div class="grid-2">
+              <div class="form-group">
+                <label>เบอร์โทรศัพท์</label>
+                <input type="tel" class="form-control" placeholder="0XX-XXX-XXXX">
+              </div>
+              <div class="form-group">
+                <label>หัวข้อ *</label>
+                <select class="form-control" required>
+                  <option value="">เลือกหัวข้อ</option>
+                  <option>สอบถามสินค้า</option>
+                  <option>การสั่งซื้อ</option>
+                  <option>การจัดส่ง</option>
+                  <option>การคืนสินค้า</option>
+                  <option>อื่นๆ</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>ข้อความ *</label>
+              <textarea class="form-control" placeholder="ข้อความของคุณ..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg">📤 ส่งข้อความ</button>
+          </form>
+        </div>
+
+        <!-- Map -->
+        <div class="card card-body">
+          <h3 style="font-size:1rem; font-weight:700; margin-bottom:1rem;">📍 แผนที่ตั้งของเรา</h3>
+          <div class="map-placeholder">
+            <div style="text-align:center;">
+              <div style="font-size:2.5rem; margin-bottom:.5rem;">🗺</div>
+              <p style="font-size:.85rem; color:var(--text-muted);">แผนที่ตั้งสำนักงาน</p>
+              <button class="btn btn-outline btn-sm" style="margin-top:.5rem;">เปิดใน Google Maps</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Details + Hours -->
+      <div>
+        <div class="card card-body" style="margin-bottom:1.25rem;">
+          <h3 style="font-size:1rem; font-weight:700; margin-bottom:.75rem;">ช่องทางการติดต่อ</h3>
+          <div class="contact-detail-item">
+            <div class="contact-detail-icon blue">📞</div>
+            <div>
+              <p class="contact-detail-label">โทรศัพท์</p>
+              <p class="contact-detail-value">02-123-4567</p>
+            </div>
+          </div>
+          <div class="contact-detail-item">
+            <div class="contact-detail-icon green">✉</div>
+            <div>
+              <p class="contact-detail-label">อีเมล</p>
+              <p class="contact-detail-value">hello@shopthai.com</p>
+            </div>
+          </div>
+          <div class="contact-detail-item">
+            <div class="contact-detail-icon orange">📍</div>
+            <div>
+              <p class="contact-detail-label">ที่อยู่</p>
+              <p class="contact-detail-value">123 ถนนสุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพฯ 10110</p>
+            </div>
+          </div>
+          <div class="contact-detail-item">
+            <div class="contact-detail-icon purple">🎧</div>
+            <div>
+              <p class="contact-detail-label">ฝ่ายบริการลูกค้า</p>
+              <p class="contact-detail-value">support@shopthai.com</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Business Hours -->
+        <div class="card card-body" style="margin-bottom:1.25rem;">
+          <h3 style="font-size:1rem; font-weight:700; margin-bottom:.75rem;">⏰ เวลาทำการ</h3>
+          <table class="hours-table">
+            <tr><td>จันทร์ - ศุกร์</td><td>09:00 – 18:00 น.</td></tr>
+            <tr><td>เสาร์</td><td>09:00 – 15:00 น.</td></tr>
+            <tr><td>อาทิตย์</td><td>ปิดทำการ</td></tr>
+            <tr><td>วันหยุดนักขัตฤกษ์</td><td>ปิดทำการ</td></tr>
+          </table>
+          <p style="font-size:.78rem; color:var(--text-muted); margin-top:.5rem;">* เวลาทำการอาจมีการปรับเปลี่ยนในบางช่วงเวลา</p>
+        </div>
+
+        <!-- Social -->
+        <div class="card card-body">
+          <h3 style="font-size:1rem; font-weight:700; margin-bottom:.75rem;">ติดตามเราผ่านช่องทางออนไลน์</h3>
+          <div style="display:flex; gap:.75rem; flex-wrap:wrap;">
+            <a href="#" class="btn btn-ghost btn-sm" style="gap:.4rem;">f Facebook</a>
+            <a href="#" class="btn btn-ghost btn-sm" style="gap:.4rem;">💚 LINE</a>
+            <a href="#" class="btn btn-ghost btn-sm" style="gap:.4rem;">📸 Instagram</a>
+            <a href="#" class="btn btn-ghost btn-sm" style="gap:.4rem;">▶ YouTube</a>
+            <a href="#" class="btn btn-ghost btn-sm" style="gap:.4rem;">in LinkedIn</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <div style="margin-top:2.5rem;">
+      <div class="text-center" style="margin-bottom:1.75rem;">
+        <h2 class="section-title">คำถามที่พบบ่อย</h2>
+        <p class="text-muted">หาคำตอบสำหรับคำถามที่พบบ่อยหรือติดต่อเพื่อขอความช่วยเหลือเพิ่มเติม</p>
+      </div>
+      <div style="max-width:760px; margin:0 auto;">
+        <div class="faq-item open">
+          <div class="faq-question">ส่งสินค้าภายในกี่วัน? <span class="faq-chevron">▼</span></div>
+          <div class="faq-answer">จัดส่งมาตรฐาน 2-4 วันทำการ จัดส่งด่วน 1-2 วันทำการ นับจากวันที่ชำระเงิน</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">คืนสินค้าได้ไหม? <span class="faq-chevron">▼</span></div>
+          <div class="faq-answer">สามารถคืนสินค้าได้ภายใน 7 วัน กรณีสินค้าชำรุดหรือผิดรายการ โดยสินค้าต้องอยู่ในสภาพเดิม</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">มีบริการให้คำปรึกษาฟรีไหม? <span class="faq-chevron">▼</span></div>
+          <div class="faq-answer">มีครับ! ทีมงานของเราพร้อมให้คำปรึกษาฟรี สามารถนัดหมายผ่านฟอร์มด้านบน หรือโทรมาได้เลย</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-question">ชำระเงินด้วยวิธีใดได้บ้าง? <span class="faq-chevron">▼</span></div>
+          <div class="faq-answer">รองรับบัตรเครดิต/เดบิต, โอนเงินผ่านธนาคาร, PromptPay, TrueMoney Wallet และ LINE Pay</div>
+        </div>
+      </div>
+      <div style="text-align:center; margin-top:1.25rem;">
+        <a href="#" class="btn btn-outline">ดูคำถามที่พบบ่อยทั้งหมด</a>
+      </div>
+    </div>
+
+    <!-- CTA Bar -->
+    <div class="cta-bar">
+      <div class="cta-bar-text">
+        <h3>✨ ปรึกษาฟรี! พร้อมออกแบบโซลูชั่นที่ใช่สำหรับคุณ</h3>
+        <p>ให้เราช่วยวางแผนและเสนอแนวทางที่เหมาะสมกับธุรกิจของคุณ</p>
+      </div>
+      <a href="signup.html" class="btn btn-primary btn-lg">นัดหมายปรึกษา</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">🛒 ShopThai</div>
+        <p class="footer-brand-desc">ให้บริการออกแบบและพัฒนาเว็บไซต์ พัฒนาสินค้า SEO สำหรับธุรกิจคุณ</p>
+        <div class="social-links"><a href="#">f</a><a href="#">X</a><a href="#">in</a><a href="#">yt</a></div>
+      </div>
+      <div class="footer-col">
+        <h4>บริการ</h4>
+        <ul>
+          <li><a href="#">ออกแบบเว็บไซต์</a></li>
+          <li><a href="#">พัฒนาแอพ</a></li>
+          <li><a href="#">SEO</a></li>
+          <li><a href="#">ส่วนผสมดิจิตอล</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>บริษัท</h4>
+        <ul>
+          <li><a href="#">เกี่ยวกับเรา</a></li>
+          <li><a href="#">ทีมงาน</a></li>
+          <li><a href="#">ร่วมงานกับเรา</a></li>
+          <li><a href="#">ข่าวสาร</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>ติดต่อเราได้ที่</h4>
+        <ul>
+          <li><a href="#">02-123-4567</a></li>
+          <li><a href="#">hello@shopthai.com</a></li>
+          <li><a href="#">123 ถนนสุขุมวิท</a></li>
+          <li><a href="#">กรุงเทพฯ 10110</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2024 ShopThai. สงวนลิขสิทธิ์</span>
+      <span>นโยบายความเป็นส่วนตัว | ข้อกำหนดการใช้งาน</span>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

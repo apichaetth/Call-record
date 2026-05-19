@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ShopThai - เข้าสู่ระบบ</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="auth-page">
+  <div class="auth-card card">
+    <div class="card-body" style="padding:2.25rem;">
+
+      <div class="auth-logo">
+        <div class="auth-logo-icon">🛒</div>
+        <div class="auth-logo-text">ShopThai</div>
+      </div>
+
+      <h1 class="auth-title">ยินดีต้อนรับกลับมา</h1>
+      <p class="auth-subtitle">เข้าสู่ระบบเพื่อใช้งานบัญชีของคุณ</p>
+
+      <form class="validate" data-success="เข้าสู่ระบบสำเร็จ! กำลังเปลี่ยนหน้า...">
+        <div class="form-group">
+          <label for="email">อีเมลหรือชื่อผู้ใช้</label>
+          <div class="input-icon">
+            <span class="icon">✉</span>
+            <input type="email" id="email" class="form-control" placeholder="อีเมลหรือชื่อผู้ใช้" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">รหัสผ่าน</label>
+          <div class="password-wrapper">
+            <input type="password" id="password" class="form-control" placeholder="••••••••••" required>
+            <button type="button" class="toggle-pw">👁</button>
+          </div>
+        </div>
+
+        <div class="checkbox-row">
+          <label>
+            <input type="checkbox"> แสดงรหัสผ่าน
+          </label>
+          <a href="#" style="color:var(--primary); font-size:.88rem;">ลืมรหัสผ่าน?</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block btn-lg">เข้าสู่ระบบ</button>
+      </form>
+
+      <div class="divider">หรือเข้าสู่ระบบด้วย</div>
+
+      <button class="social-btn">
+        <span>🟥</span> Google
+      </button>
+      <button class="social-btn">
+        <span>🟦</span> Facebook
+      </button>
+      <button class="social-btn">
+        <span>⬛</span> Apple
+      </button>
+
+      <p style="text-align:center; margin-top:1.25rem; font-size:.9rem; color:var(--text-muted);">
+        ยังไม่มีบัญชี? <a href="signup.html">สมัครสมาชิก</a>
+      </p>
+
+      <div style="margin-top:1rem; text-align:center; font-size:.82rem; color:var(--text-muted);">
+        ❓ ต้องการความช่วยเหลือ? <a href="contact.html">ติดต่อฝ่ายสนับสนุน</a>
+      </div>
+
+    </div>
+    <div style="padding:.75rem 2.25rem; border-top:1px solid var(--border); text-align:center; font-size:.78rem; color:var(--text-muted);">
+      © 2024 ShopThai · <a href="#">นโยบายความเป็นส่วนตัว</a> · <a href="#">ข้อกำหนดการใช้งาน</a>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
