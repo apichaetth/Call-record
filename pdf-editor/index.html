@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PDF Editor Pro</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Top Toolbar -->
+  <div class="toolbar" id="toolbar">
+    <!-- Left: Brand + File actions -->
+    <div class="toolbar-left">
+      <div class="brand">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4f8ef7" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+        <span class="brand-name">PDF Editor Pro</span>
+      </div>
+      <input type="file" id="fileInput" accept=".pdf" hidden />
+      <button class="btn btn-primary" id="openBtn" title="Open PDF (Ctrl+O)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+        </svg>
+        Open PDF
+      </button>
+      <button class="btn btn-success" id="saveBtn" title="Save PDF (Ctrl+S)" disabled>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/>
+          <polyline points="7 3 7 8 15 8"/>
+        </svg>
+        Save PDF
+      </button>
+      <button class="btn btn-secondary" id="exportImgBtn" title="Export current page as PNG" disabled>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>
+        Export Image
+      </button>
+    </div>
+
+    <!-- Center: Page controls + Zoom -->
+    <div class="toolbar-center">
+      <div class="page-controls">
+        <button class="btn btn-icon" id="prevBtn" title="Previous page" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </button>
+        <div class="page-input-wrap">
+          <input type="number" id="pageInput" min="1" value="1" disabled title="Current page" />
+          <span class="page-sep">/</span>
+          <span id="totalPages">0</span>
+        </div>
+        <button class="btn btn-icon" id="nextBtn" title="Next page" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </button>
+      </div>
+      <div class="zoom-controls">
+        <button class="btn btn-icon" id="zoomOutBtn" title="Zoom out" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            <line x1="8" y1="11" x2="14" y2="11"/>
+          </svg>
+        </button>
+        <span id="zoomLabel" class="zoom-label">100%</span>
+        <button class="btn btn-icon" id="zoomInBtn" title="Zoom in" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
+          </svg>
+        </button>
+        <button class="btn btn-icon" id="fitBtn" title="Fit to window" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Right: History -->
+    <div class="toolbar-right">
+      <button class="btn btn-icon" id="undoBtn" title="Undo (Ctrl+Z)" disabled>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="1 4 1 10 7 10"/>
+          <path d="M3.51 15a9 9 0 1 0 .49-4.5"/>
+        </svg>
+        Undo
+      </button>
+      <button class="btn btn-icon" id="redoBtn" title="Redo (Ctrl+Y)" disabled>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 4 23 10 17 10"/>
+          <path d="M20.49 15a9 9 0 1 1-.49-4.5"/>
+        </svg>
+        Redo
+      </button>
+    </div>
+  </div>
+
+  <!-- Tool Palette Row -->
+  <div class="tool-palette" id="toolPalette">
+    <div class="tools-group">
+      <button class="tool-btn active" data-tool="select" title="Select (V)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 3l14 9-7 1-4 7z"/>
+        </svg>
+        <span>Select</span>
+      </button>
+      <button class="tool-btn" data-tool="text" title="Text (T)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="4 7 4 4 20 4 20 7"/>
+          <line x1="9" y1="20" x2="15" y2="20"/>
+          <line x1="12" y1="4" x2="12" y2="20"/>
+        </svg>
+        <span>Text</span>
+      </button>
+      <button class="tool-btn" data-tool="pen" title="Pen (P)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 19l7-7 3 3-7 7-3-3z"/>
+          <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>
+          <path d="M2 2l7.586 7.586"/>
+          <circle cx="11" cy="11" r="2"/>
+        </svg>
+        <span>Pen</span>
+      </button>
+      <button class="tool-btn" data-tool="highlighter" title="Highlighter (H)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="9" y1="3" x2="15" y2="3"/>
+          <line x1="9" y1="21" x2="15" y2="21"/>
+          <line x1="6.5" y1="6.5" x2="17.5" y2="17.5"/>
+          <line x1="17.5" y1="6.5" x2="6.5" y2="17.5"/>
+        </svg>
+        <span>Highlight</span>
+      </button>
+      <button class="tool-btn" data-tool="rect" title="Rectangle (R)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+        </svg>
+        <span>Rect</span>
+      </button>
+      <button class="tool-btn" data-tool="circle" title="Circle (C)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+        </svg>
+        <span>Circle</span>
+      </button>
+      <button class="tool-btn" data-tool="line" title="Line (L)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="21" x2="21" y2="3"/>
+        </svg>
+        <span>Line</span>
+      </button>
+      <button class="tool-btn" data-tool="arrow" title="Arrow (A)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="5" y1="19" x2="19" y2="5"/>
+          <polyline points="13 5 19 5 19 11"/>
+        </svg>
+        <span>Arrow</span>
+      </button>
+      <button class="tool-btn" data-tool="eraser" title="Eraser (E)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 20H7L3 16l10-10 7 7-1.5 1.5"/>
+          <path d="M6.5 17.5l5-5"/>
+        </svg>
+        <span>Eraser</span>
+      </button>
+    </div>
+
+    <div class="tool-options" id="toolOptions">
+      <label class="opt-label">Color</label>
+      <input type="color" id="colorPicker" value="#e74c3c" title="Stroke/fill color" />
+
+      <label class="opt-label">Width</label>
+      <input type="range" id="strokeWidth" min="1" max="30" value="3" title="Stroke width" />
+      <span id="strokeWidthVal" class="opt-val">3</span>
+
+      <label class="opt-label">Opacity</label>
+      <input type="range" id="opacitySlider" min="5" max="100" value="100" title="Opacity %" />
+      <span id="opacityVal" class="opt-val">100%</span>
+
+      <label class="opt-label font-size-opt" id="fontSizeLabel">Size</label>
+      <input type="range" id="fontSizeSlider" min="8" max="72" value="18" title="Font size" class="font-size-opt" />
+      <span id="fontSizeVal" class="opt-val font-size-opt">18px</span>
+    </div>
+  </div>
+
+  <!-- Main layout -->
+  <div class="main-layout">
+    <!-- Thumbnail sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">Pages</div>
+      <div class="thumb-container" id="thumbContainer"></div>
+    </aside>
+
+    <!-- Canvas area -->
+    <main class="canvas-area" id="canvasArea">
+      <div class="drop-zone" id="dropZone">
+        <div class="drop-icon">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#4f8ef7" stroke-width="1.5">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="12" x2="12" y2="18"/>
+            <line x1="9" y1="15" x2="15" y2="15"/>
+          </svg>
+        </div>
+        <p class="drop-title">Drop a PDF here</p>
+        <p class="drop-sub">or click <strong>Open PDF</strong> above</p>
+      </div>
+
+      <div class="canvas-wrapper" id="canvasWrapper" style="display:none;">
+        <canvas id="pdfCanvas"></canvas>
+        <canvas id="annotationCanvas"></canvas>
+        <textarea id="textInput" class="text-input" placeholder="Type here..." style="display:none;"></textarea>
+      </div>
+    </main>
+
+    <!-- Properties panel -->
+    <aside class="props-panel" id="propsPanel">
+      <div class="props-header">Properties</div>
+      <div class="props-body" id="propsBody">
+        <p class="props-empty">No annotation selected</p>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Loading overlay -->
+  <div class="loading-overlay" id="loadingOverlay" style="display:none;">
+    <div class="spinner"></div>
+    <p>Processing PDF...</p>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
