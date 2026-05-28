@@ -1,901 +1,1075 @@
-'use strict';
+/* ============================================================
+   PDF Editor Pro — app.js
+   Complete standalone implementation using PDF.js + pdf-lib
+   ============================================================ */
 
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+(function () {
+  'use strict';
 
-class PDFEditor {
-  constructor() {
-    // PDF state
-    this.pdfDoc       = null;
-    this.pdfBytes     = null;   // original Uint8Array
-    this.currentPage  = 1;
-    this.totalPages   = 0;
-    this.scale        = 1.5;
+  window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(init, 100);
+  });
 
-    // Tool state
-    this.tool        = 'select';
-    this.color       = '#e74c3c';
-    this.strokeWidth = 3;
-    this.opacity     = 1.0;
-    this.fontSize    = 18;
-
-    // Draw state
-    this.isDrawing   = false;
-    this.startX      = 0;
-    this.startY      = 0;
-    this.currentPath = [];
-    this.snapshot    = null;   // ImageData for shape preview
-
-    // Annotations keyed by page number: { 1: [...], 2: [...] }
-    this.annotations = {};
-
-    // History keyed by page number: { 1: { stack: [], index: -1 } }
-    this.history = {};
-
-    this.selectedIdx = null;   // index into annotations[currentPage]
-
-    this.init();
+  function init() {
+    const editor = new PDFEditor();
+    editor.mount();
   }
 
-  /* ------------------------------------------------------------------ */
-  /*  Initialization                                                      */
-  /* ------------------------------------------------------------------ */
+  class PDFEditor {
+    constructor() {
+      this.pdfDoc       = null;
+      this.pdfBytes     = null;
+      this.currentPage  = 1;
+      this.totalPages   = 0;
+      this.currentScale = 1.0;
+      this.fitScale     = 1.0;
 
-  init() {
-    // Canvas refs
-    this.pdfCanvas   = document.getElementById('pdfCanvas');
-    this.annotCanvas = document.getElementById('annotationCanvas');
-    this.pdfCtx      = this.pdfCanvas.getContext('2d');
-    this.annotCtx    = this.annotCanvas.getContext('2d');
+      this.annotations  = {};
+      this.history      = {};
+      this.historyIndex = {};
 
-    this.bindToolbar();
-    this.bindTools();
-    this.bindCanvas();
-    this.bindKeyboard();
-    this.setupDrop();
-  }
+      this.currentTool  = 'select';
+      this.isDrawing    = false;
+      this.startX       = 0;
+      this.startY       = 0;
+      this.snapshotData = null;
+      this.currentPen   = null;
 
-  /* ------------------------------------------------------------------ */
-  /*  Event binding                                                       */
-  /* ------------------------------------------------------------------ */
+      this.selectedAnnot = null;
 
-  bindToolbar() {
-    // File
-    document.getElementById('openBtn').addEventListener('click', () =>
-      document.getElementById('fileInput').click());
-    document.getElementById('fileInput').addEventListener('change', e => {
-      const f = e.target.files[0];
-      if (f) this.loadFile(f);
-      e.target.value = '';
-    });
-    document.getElementById('saveBtn').addEventListener('click', () => this.savePDF());
-    document.getElementById('exportImgBtn').addEventListener('click', () => this.exportImage());
+      this.color       = '#e74c3c';
+      this.strokeWidth = 3;
+      this.opacity     = 1.0;
+      this.fontSize    = 18;
 
-    // Page
-    document.getElementById('prevBtn').addEventListener('click', () => this.goTo(this.currentPage - 1));
-    document.getElementById('nextBtn').addEventListener('click', () => this.goTo(this.currentPage + 1));
-    document.getElementById('pageInput').addEventListener('change', e =>
-      this.goTo(parseInt(e.target.value) || 1));
+      this.thumbQueue  = [];
+      this.thumbBusy   = false;
+    }
 
-    // Zoom
-    document.getElementById('zoomInBtn') .addEventListener('click', () => this.zoom(this.scale * 1.25));
-    document.getElementById('zoomOutBtn').addEventListener('click', () => this.zoom(this.scale / 1.25));
-    document.getElementById('fitBtn')    .addEventListener('click', () => this.fitPage());
+    mount() {
+      this.pdfCanvas     = document.getElementById('pdfCanvas');
+      this.annotCanvas   = document.getElementById('annotationCanvas');
+      this.pdfCtx        = this.pdfCanvas.getContext('2d');
+      this.annotCtx      = this.annotCanvas.getContext('2d');
+      this.canvasWrapper = document.getElementById('canvasWrapper');
+      this.canvasArea    = document.getElementById('canvasArea');
 
-    // History
-    document.getElementById('undoBtn').addEventListener('click', () => this.undo());
-    document.getElementById('redoBtn').addEventListener('click', () => this.redo());
-  }
+      this.textInput     = document.getElementById('textInput');
 
-  bindTools() {
-    // Tool buttons
-    document.querySelectorAll('.tool-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        this.tool = btn.dataset.tool;
-        document.getElementById('canvasWrapper').dataset.tool = this.tool;
-        this.toggleFontSizeOpts();
+      this.openBtn       = document.getElementById('openBtn');
+      this.fileInput     = document.getElementById('fileInput');
+      this.saveBtn       = document.getElementById('saveBtn');
+      this.exportImgBtn  = document.getElementById('exportImgBtn');
+      this.prevBtn       = document.getElementById('prevBtn');
+      this.nextBtn       = document.getElementById('nextBtn');
+      this.pageInput     = document.getElementById('pageInput');
+      this.totalPagesEl  = document.getElementById('totalPages');
+      this.zoomInBtn     = document.getElementById('zoomInBtn');
+      this.zoomOutBtn    = document.getElementById('zoomOutBtn');
+      this.fitBtn        = document.getElementById('fitBtn');
+      this.zoomLabel     = document.getElementById('zoomLabel');
+      this.undoBtn       = document.getElementById('undoBtn');
+      this.redoBtn       = document.getElementById('redoBtn');
+
+      this.toolButtons       = document.querySelectorAll('.tool-btn');
+      this.colorPicker       = document.getElementById('colorPicker');
+      this.strokeWidthSlider = document.getElementById('strokeWidth');
+      this.strokeWidthVal    = document.getElementById('strokeWidthVal');
+      this.opacitySlider     = document.getElementById('opacitySlider');
+      this.opacityVal        = document.getElementById('opacityVal');
+      this.fontSizeSlider    = document.getElementById('fontSizeSlider');
+      this.fontSizeVal       = document.getElementById('fontSizeVal');
+      this.fontSizeOpts      = document.querySelectorAll('.font-size-opt');
+
+      this.thumbContainer  = document.getElementById('thumbContainer');
+      this.dropZone        = document.getElementById('dropZone');
+      this.propsBody       = document.getElementById('propsBody');
+      this.loadingOverlay  = document.getElementById('loadingOverlay');
+
+      this.toastEl = this._createToast();
+      this._bindEvents();
+      this._updateToolCursor();
+    }
+
+    _bindEvents() {
+      this.openBtn.addEventListener('click', () => this.fileInput.click());
+      this.fileInput.addEventListener('change', e => {
+        if (e.target.files[0]) this._loadFile(e.target.files[0]);
+        e.target.value = '';
       });
-    });
 
-    // Color
-    document.getElementById('colorPicker').addEventListener('input', e => {
-      this.color = e.target.value;
-    });
+      this.saveBtn.addEventListener('click', () => this._savePDF());
+      this.exportImgBtn.addEventListener('click', () => this._exportImage());
 
-    // Stroke width
-    document.getElementById('strokeWidth').addEventListener('input', e => {
-      this.strokeWidth = parseInt(e.target.value);
-      document.getElementById('strokeWidthVal').textContent = e.target.value;
-    });
+      this.prevBtn.addEventListener('click', () => this._gotoPage(this.currentPage - 1));
+      this.nextBtn.addEventListener('click', () => this._gotoPage(this.currentPage + 1));
+      this.pageInput.addEventListener('change', () => {
+        const n = parseInt(this.pageInput.value, 10);
+        if (!isNaN(n)) this._gotoPage(n);
+      });
+      this.pageInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') this.pageInput.blur();
+      });
 
-    // Opacity
-    document.getElementById('opacitySlider').addEventListener('input', e => {
-      this.opacity = parseInt(e.target.value) / 100;
-      document.getElementById('opacityVal').textContent = e.target.value + '%';
-    });
+      this.zoomInBtn.addEventListener('click',  () => this._zoom(1.25));
+      this.zoomOutBtn.addEventListener('click', () => this._zoom(0.8));
+      this.fitBtn.addEventListener('click',     () => this._zoomFit());
 
-    // Font size
-    document.getElementById('fontSizeSlider').addEventListener('input', e => {
-      this.fontSize = parseInt(e.target.value);
-      document.getElementById('fontSizeVal').textContent = e.target.value + 'px';
-    });
-  }
+      this.undoBtn.addEventListener('click', () => this._undo());
+      this.redoBtn.addEventListener('click', () => this._redo());
 
-  toggleFontSizeOpts() {
-    document.querySelectorAll('.font-size-opt').forEach(el => {
-      el.classList.toggle('visible', this.tool === 'text');
-    });
-  }
+      this.toolButtons.forEach(btn => {
+        btn.addEventListener('click', () => this._setTool(btn.dataset.tool));
+      });
 
-  bindCanvas() {
-    const c = this.annotCanvas;
-    c.addEventListener('mousedown',  e => this.onDown(e));
-    c.addEventListener('mousemove',  e => this.onMove(e));
-    c.addEventListener('mouseup',    e => this.onUp(e));
-    c.addEventListener('mouseleave', e => this.onUp(e));
+      this.colorPicker.addEventListener('input', e => {
+        this.color = e.target.value;
+        if (this.selectedAnnot) {
+          this.selectedAnnot.color = this.color;
+          this._redrawAnnotations();
+        }
+      });
+      this.strokeWidthSlider.addEventListener('input', e => {
+        this.strokeWidth = parseInt(e.target.value, 10);
+        this.strokeWidthVal.textContent = this.strokeWidth;
+        if (this.selectedAnnot && this.selectedAnnot.width !== undefined) {
+          this.selectedAnnot.width = this.strokeWidth;
+          this._redrawAnnotations();
+        }
+      });
+      this.opacitySlider.addEventListener('input', e => {
+        this.opacity = parseInt(e.target.value, 10) / 100;
+        this.opacityVal.textContent = e.target.value + '%';
+        if (this.selectedAnnot) {
+          this.selectedAnnot.opacity = this.opacity;
+          this._redrawAnnotations();
+        }
+      });
+      this.fontSizeSlider.addEventListener('input', e => {
+        this.fontSize = parseInt(e.target.value, 10);
+        this.fontSizeVal.textContent = this.fontSize + 'px';
+        if (this.selectedAnnot && this.selectedAnnot.type === 'text') {
+          this.selectedAnnot.fontSize = this.fontSize;
+          this._redrawAnnotations();
+        }
+      });
 
-    c.addEventListener('touchstart',  e => { e.preventDefault(); this.onDown(this.toMouse(e)); }, { passive: false });
-    c.addEventListener('touchmove',   e => { e.preventDefault(); this.onMove(this.toMouse(e)); }, { passive: false });
-    c.addEventListener('touchend',    e => { e.preventDefault(); this.onUp({}); });
-  }
+      this.canvasArea.addEventListener('dragover', e => {
+        e.preventDefault();
+        this.dropZone.classList.add('drag-over');
+      });
+      this.canvasArea.addEventListener('dragleave', () => {
+        this.dropZone.classList.remove('drag-over');
+      });
+      this.canvasArea.addEventListener('drop', e => {
+        e.preventDefault();
+        this.dropZone.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (file && file.type === 'application/pdf') this._loadFile(file);
+        else this._toast('Please drop a PDF file', 'error');
+      });
 
-  bindKeyboard() {
-    document.addEventListener('keydown', e => {
-      if (e.ctrlKey || e.metaKey) {
-        if (e.key === 'z') { e.preventDefault(); this.undo(); }
-        if (e.key === 'y') { e.preventDefault(); this.redo(); }
-        if (e.key === 's') { e.preventDefault(); this.savePDF(); }
-        if (e.key === 'o') { e.preventDefault(); document.getElementById('fileInput').click(); }
+      this.annotCanvas.addEventListener('mousedown',  e => this._onMouseDown(e));
+      this.annotCanvas.addEventListener('mousemove',  e => this._onMouseMove(e));
+      this.annotCanvas.addEventListener('mouseup',    e => this._onMouseUp(e));
+      this.annotCanvas.addEventListener('mouseleave', e => { if (this.isDrawing) this._onMouseUp(e); });
+
+      this.annotCanvas.addEventListener('touchstart',  e => this._touchToMouse(e, 'mousedown'),  { passive: false });
+      this.annotCanvas.addEventListener('touchmove',   e => this._touchToMouse(e, 'mousemove'),  { passive: false });
+      this.annotCanvas.addEventListener('touchend',    e => this._touchToMouse(e, 'mouseup'),    { passive: false });
+
+      this.textInput.addEventListener('blur',    () => this._confirmText());
+      this.textInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.textInput.blur(); }
+        e.stopPropagation();
+      });
+
+      document.addEventListener('keydown', e => this._onKeyDown(e));
+
+      window.addEventListener('resize', () => {
+        if (this.pdfDoc) this._zoomFit();
+      });
+    }
+
+    _touchToMouse(e, type) {
+      e.preventDefault();
+      const touch = e.touches[0] || e.changedTouches[0];
+      const me = new MouseEvent(type, {
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+        bubbles: true
+      });
+      this.annotCanvas.dispatchEvent(me);
+    }
+
+    _onKeyDown(e) {
+      if (e.target === this.textInput) return;
+
+      const ctrl = e.ctrlKey || e.metaKey;
+      if (ctrl && e.key === 'z') { e.preventDefault(); this._undo(); return; }
+      if (ctrl && e.key === 'y') { e.preventDefault(); this._redo(); return; }
+      if (ctrl && e.key === 's') { e.preventDefault(); this._savePDF(); return; }
+
+      if (!this.pdfDoc) return;
+
+      const map = { v:'select', t:'text', p:'pen', h:'highlighter',
+                    r:'rect', c:'circle', l:'line', a:'arrow', e:'eraser' };
+      if (!ctrl && map[e.key.toLowerCase()]) {
+        this._setTool(map[e.key.toLowerCase()]);
         return;
       }
-      // Delete selected
-      if ((e.key === 'Delete' || e.key === 'Backspace') && this.selectedIdx !== null) {
-        const t = e.target.tagName.toLowerCase();
-        if (t !== 'input' && t !== 'textarea') {
-          e.preventDefault();
-          this.deleteSelected();
+      if ((e.key === 'Delete' || e.key === 'Backspace') && this.selectedAnnot) {
+        this._deleteSelected();
+        return;
+      }
+    }
+
+    async _loadFile(file) {
+      this._showLoading(true);
+      try {
+        const buffer = await file.arrayBuffer();
+        this.pdfBytes = buffer.slice(0);
+
+        if (typeof pdfjsLib === 'undefined') {
+          throw new Error('PDF.js library not loaded. Check CDN connectivity.');
+        }
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        const loadingTask = pdfjsLib.getDocument({ data: buffer.slice(0) });
+        this.pdfDoc = await loadingTask.promise;
+        this.totalPages = this.pdfDoc.numPages;
+
+        this.annotations  = {};
+        this.history      = {};
+        this.historyIndex = {};
+        this.selectedAnnot = null;
+        this.currentPage   = 1;
+
+        for (let i = 1; i <= this.totalPages; i++) {
+          this.annotations[i]  = [];
+          this.history[i]      = [ JSON.stringify([]) ];
+          this.historyIndex[i] = 0;
+        }
+
+        this.totalPagesEl.textContent = this.totalPages;
+        this.pageInput.max = this.totalPages;
+        this._enableControls(true);
+        this.dropZone.style.display    = 'none';
+        this.canvasWrapper.style.display = 'block';
+
+        await this._buildThumbnails();
+        await this._zoomFit();
+        this._toast('PDF loaded — ' + this.totalPages + ' page(s)', 'success');
+      } catch (err) {
+        console.error(err);
+        this._toast('Failed to load PDF: ' + err.message, 'error');
+      } finally {
+        this._showLoading(false);
+      }
+    }
+
+    async _renderPage(pageNum, scale) {
+      if (!this.pdfDoc) return;
+      const page     = await this.pdfDoc.getPage(pageNum);
+      const viewport = page.getViewport({ scale });
+
+      this.pdfCanvas.width     = viewport.width;
+      this.pdfCanvas.height    = viewport.height;
+      this.annotCanvas.width   = viewport.width;
+      this.annotCanvas.height  = viewport.height;
+      this.canvasWrapper.style.width  = viewport.width  + 'px';
+      this.canvasWrapper.style.height = viewport.height + 'px';
+
+      await page.render({ canvasContext: this.pdfCtx, viewport }).promise;
+      this._redrawAnnotations();
+      this._updatePageInput();
+      this._highlightThumb(pageNum);
+    }
+
+    async _gotoPage(n) {
+      if (!this.pdfDoc) return;
+      n = Math.max(1, Math.min(this.totalPages, n));
+      if (n === this.currentPage) return;
+      this.currentPage = n;
+      this.selectedAnnot = null;
+      this._updatePropsPanel();
+      await this._renderPage(this.currentPage, this.currentScale);
+    }
+
+    _updatePageInput() {
+      this.pageInput.value      = this.currentPage;
+      this.prevBtn.disabled     = this.currentPage <= 1;
+      this.nextBtn.disabled     = this.currentPage >= this.totalPages;
+    }
+
+    async _zoom(factor) {
+      if (!this.pdfDoc) return;
+      const newScale = Math.min(5, Math.max(0.25, this.currentScale * factor));
+      if (Math.abs(newScale - this.currentScale) < 0.001) return;
+
+      const ratio = newScale / this.currentScale;
+      const pg    = this.currentPage;
+      this.annotations[pg] = this.annotations[pg].map(a => this._scaleAnnotation(a, ratio));
+      this.history[pg]      = [ JSON.stringify(this.annotations[pg]) ];
+      this.historyIndex[pg] = 0;
+
+      this.currentScale = newScale;
+      this.zoomLabel.textContent = Math.round(newScale * 100) + '%';
+      await this._renderPage(this.currentPage, this.currentScale);
+    }
+
+    async _zoomFit() {
+      if (!this.pdfDoc) return;
+      const page     = await this.pdfDoc.getPage(this.currentPage);
+      const vp       = page.getViewport({ scale: 1 });
+      const areaW    = this.canvasArea.clientWidth  - 48;
+      const areaH    = this.canvasArea.clientHeight - 48;
+      const fitScale = Math.min(areaW / vp.width, areaH / vp.height, 3);
+
+      if (Math.abs(fitScale - this.currentScale) > 0.001 && this.currentScale !== 1.0) {
+        const ratio = fitScale / this.currentScale;
+        const pg    = this.currentPage;
+        this.annotations[pg] = this.annotations[pg].map(a => this._scaleAnnotation(a, ratio));
+        this.history[pg]      = [ JSON.stringify(this.annotations[pg]) ];
+        this.historyIndex[pg] = 0;
+      }
+
+      this.fitScale     = fitScale;
+      this.currentScale = fitScale;
+      this.zoomLabel.textContent = Math.round(fitScale * 100) + '%';
+      await this._renderPage(this.currentPage, this.currentScale);
+    }
+
+    async _buildThumbnails() {
+      this.thumbContainer.innerHTML = '';
+      this.thumbQueue = [];
+      for (let i = 1; i <= this.totalPages; i++) {
+        const item = document.createElement('div');
+        item.className    = 'thumb-item';
+        item.dataset.page = i;
+        item.title        = 'Page ' + i;
+
+        const canvas = document.createElement('canvas');
+        item.appendChild(canvas);
+
+        const num = document.createElement('span');
+        num.className   = 'thumb-num';
+        num.textContent = i;
+        item.appendChild(num);
+
+        item.addEventListener('click', () => this._gotoPage(parseInt(item.dataset.page, 10)));
+        this.thumbContainer.appendChild(item);
+        this.thumbQueue.push({ pageNum: i, canvas });
+      }
+      this._drainThumbQueue();
+    }
+
+    async _drainThumbQueue() {
+      if (this.thumbBusy || this.thumbQueue.length === 0) return;
+      this.thumbBusy = true;
+      const { pageNum, canvas } = this.thumbQueue.shift();
+      try {
+        const page     = await this.pdfDoc.getPage(pageNum);
+        const vp       = page.getViewport({ scale: 1 });
+        const scale    = 130 / vp.width;
+        const viewport = page.getViewport({ scale });
+        canvas.width   = viewport.width;
+        canvas.height  = viewport.height;
+        await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+      } catch (_) { /* ignore */ }
+      this.thumbBusy = false;
+      this._drainThumbQueue();
+    }
+
+    _highlightThumb(pageNum) {
+      document.querySelectorAll('.thumb-item').forEach(el => {
+        el.classList.toggle('active', parseInt(el.dataset.page, 10) === pageNum);
+      });
+      const active = document.querySelector('.thumb-item.active');
+      if (active) active.scrollIntoView({ block: 'nearest' });
+    }
+
+    _setTool(tool) {
+      this.currentTool = tool;
+      this.toolButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.tool === tool));
+      this._updateToolCursor();
+
+      const showFont = tool === 'text';
+      this.fontSizeOpts.forEach(el => {
+        if (showFont) el.classList.add('visible');
+        else          el.classList.remove('visible');
+      });
+
+      if (this.selectedAnnot && tool !== 'select') {
+        this.selectedAnnot = null;
+        this._redrawAnnotations();
+        this._updatePropsPanel();
+      }
+    }
+
+    _updateToolCursor() {
+      if (this.canvasWrapper) {
+        this.canvasWrapper.dataset.tool = this.currentTool;
+      }
+    }
+
+    _getPos(e) {
+      const rect  = this.annotCanvas.getBoundingClientRect();
+      const scaleX = this.annotCanvas.width  / rect.width;
+      const scaleY = this.annotCanvas.height / rect.height;
+      return {
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top)  * scaleY
+      };
+    }
+
+    _onMouseDown(e) {
+      if (!this.pdfDoc) return;
+      const pos = this._getPos(e);
+
+      if (this.currentTool === 'select') {
+        this._trySelect(pos.x, pos.y);
+        return;
+      }
+      if (this.currentTool === 'text') {
+        this._placeTextInput(pos.x, pos.y);
+        return;
+      }
+      if (this.currentTool === 'eraser') {
+        this._eraseAt(pos.x, pos.y);
+        return;
+      }
+
+      this.isDrawing = true;
+      this.startX    = pos.x;
+      this.startY    = pos.y;
+
+      if (this.currentTool === 'pen' || this.currentTool === 'highlighter') {
+        this.currentPen = [{ x: pos.x, y: pos.y }];
+      } else {
+        this.snapshotData = this.annotCtx.getImageData(
+          0, 0, this.annotCanvas.width, this.annotCanvas.height
+        );
+      }
+    }
+
+    _onMouseMove(e) {
+      if (!this.isDrawing) return;
+      const pos = this._getPos(e);
+
+      if (this.currentTool === 'pen' || this.currentTool === 'highlighter') {
+        this.currentPen.push({ x: pos.x, y: pos.y });
+        this._drawLiveStroke();
+        return;
+      }
+
+      this.annotCtx.putImageData(this.snapshotData, 0, 0);
+      const preview = this._buildShapeAnnot(this.startX, this.startY, pos.x, pos.y);
+      if (preview) this._drawAnnotation(this.annotCtx, preview);
+    }
+
+    _onMouseUp(e) {
+      if (!this.isDrawing) return;
+      this.isDrawing = false;
+      const pos = this._getPos(e);
+
+      if (this.currentTool === 'pen' || this.currentTool === 'highlighter') {
+        if (this.currentPen && this.currentPen.length > 1) {
+          const isHL = this.currentTool === 'highlighter';
+          const annot = {
+            type:    this.currentTool,
+            points:  this.currentPen,
+            color:   this.color,
+            width:   isHL ? Math.max(this.strokeWidth * 4, 16) : this.strokeWidth,
+            opacity: isHL ? 0.35 : this.opacity
+          };
+          this._addAnnotation(annot);
+        }
+        this.currentPen = null;
+        return;
+      }
+
+      const annot = this._buildShapeAnnot(this.startX, this.startY, pos.x, pos.y);
+      if (annot && this._annotHasSize(annot)) {
+        this._addAnnotation(annot);
+      } else if (this.snapshotData) {
+        this.annotCtx.putImageData(this.snapshotData, 0, 0);
+      }
+      this.snapshotData = null;
+    }
+
+    _buildShapeAnnot(x1, y1, x2, y2) {
+      const base = { color: this.color, width: this.strokeWidth, opacity: this.opacity };
+      switch (this.currentTool) {
+        case 'rect':
+          return { ...base, type: 'rect',
+                   x: Math.min(x1,x2), y: Math.min(y1,y2),
+                   w: Math.abs(x2-x1),  h: Math.abs(y2-y1) };
+        case 'circle':
+          return { ...base, type: 'circle',
+                   x: Math.min(x1,x2), y: Math.min(y1,y2),
+                   rx: Math.abs(x2-x1)/2, ry: Math.abs(y2-y1)/2 };
+        case 'line':
+          return { ...base, type: 'line', x1, y1, x2, y2 };
+        case 'arrow':
+          return { ...base, type: 'arrow', x1, y1, x2, y2 };
+        default:
+          return null;
+      }
+    }
+
+    _annotHasSize(annot) {
+      if (!annot) return false;
+      if (annot.type === 'rect')   return annot.w > 3 && annot.h > 3;
+      if (annot.type === 'circle') return annot.rx > 2 && annot.ry > 2;
+      if (annot.type === 'line' || annot.type === 'arrow') {
+        const dx = annot.x2 - annot.x1, dy = annot.y2 - annot.y1;
+        return Math.sqrt(dx*dx + dy*dy) > 5;
+      }
+      return true;
+    }
+
+    _drawLiveStroke() {
+      if (!this.currentPen || this.currentPen.length < 2) return;
+      const ctx   = this.annotCtx;
+      const pts   = this.currentPen;
+      const isHL  = this.currentTool === 'highlighter';
+      const w     = isHL ? Math.max(this.strokeWidth * 4, 16) : this.strokeWidth;
+      const alpha = isHL ? 0.35 : this.opacity;
+
+      ctx.save();
+      ctx.globalAlpha  = alpha;
+      ctx.strokeStyle  = this.color;
+      ctx.lineWidth    = w;
+      ctx.lineCap      = 'round';
+      ctx.lineJoin     = 'round';
+      if (isHL) ctx.globalCompositeOperation = 'multiply';
+      ctx.beginPath();
+      ctx.moveTo(pts[pts.length - 2].x, pts[pts.length - 2].y);
+      ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
+      ctx.stroke();
+      if (isHL) ctx.globalCompositeOperation = 'source-over';
+      ctx.restore();
+    }
+
+    _drawAnnotation(ctx, annot, selected) {
+      if (!annot) return;
+      ctx.save();
+      ctx.globalAlpha = annot.opacity !== undefined ? annot.opacity : 1;
+      ctx.strokeStyle = annot.color  || '#e74c3c';
+      ctx.fillStyle   = annot.color  || '#e74c3c';
+      ctx.lineWidth   = annot.width  || 2;
+      ctx.lineCap     = 'round';
+      ctx.lineJoin    = 'round';
+
+      switch (annot.type) {
+        case 'pen':
+        case 'highlighter': {
+          const pts = annot.points;
+          if (!pts || pts.length < 2) break;
+          if (annot.type === 'highlighter') ctx.globalCompositeOperation = 'multiply';
+          ctx.beginPath();
+          ctx.moveTo(pts[0].x, pts[0].y);
+          for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+          ctx.stroke();
+          ctx.globalCompositeOperation = 'source-over';
+          break;
+        }
+        case 'text': {
+          ctx.font         = (annot.fontSize || 18) + 'px "Segoe UI", sans-serif';
+          ctx.globalAlpha  = annot.opacity !== undefined ? annot.opacity : 1;
+          ctx.fillStyle    = annot.color || '#e74c3c';
+          const lines = (annot.text || '').split('\n');
+          lines.forEach((line, i) => {
+            ctx.fillText(line, annot.x, annot.y + i * (annot.fontSize || 18) * 1.4);
+          });
+          break;
+        }
+        case 'rect':
+          ctx.strokeRect(annot.x, annot.y, annot.w, annot.h);
+          break;
+        case 'circle': {
+          const cx = annot.x + annot.rx;
+          const cy = annot.y + annot.ry;
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, annot.rx, annot.ry, 0, 0, Math.PI * 2);
+          ctx.stroke();
+          break;
+        }
+        case 'line':
+          ctx.beginPath();
+          ctx.moveTo(annot.x1, annot.y1);
+          ctx.lineTo(annot.x2, annot.y2);
+          ctx.stroke();
+          break;
+        case 'arrow':
+          this._drawArrow(ctx, annot.x1, annot.y1, annot.x2, annot.y2);
+          break;
+      }
+
+      if (selected) {
+        const bb = this._boundingBox(annot);
+        if (bb) {
+          ctx.save();
+          ctx.globalAlpha  = 1;
+          ctx.strokeStyle  = '#4f8ef7';
+          ctx.lineWidth    = 1.5;
+          ctx.setLineDash([5, 3]);
+          ctx.strokeRect(bb.x - 6, bb.y - 6, bb.w + 12, bb.h + 12);
+          ctx.restore();
         }
       }
-      // Tool shortcuts
-      const shortcuts = { v:'select', t:'text', p:'pen', h:'highlighter',
-                          r:'rect',   c:'circle', l:'line', a:'arrow', e:'eraser' };
-      const t = e.target.tagName.toLowerCase();
-      if (t !== 'input' && t !== 'textarea' && !e.altKey && shortcuts[e.key]) {
-        const toolName = shortcuts[e.key];
-        document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-        document.querySelector(`[data-tool="${toolName}"]`).classList.add('active');
-        this.tool = toolName;
-        document.getElementById('canvasWrapper').dataset.tool = this.tool;
-        this.toggleFontSizeOpts();
-      }
-    });
-  }
 
-  setupDrop() {
-    const area = document.getElementById('canvasArea');
-    area.addEventListener('dragover', e => {
-      e.preventDefault();
-      document.getElementById('dropZone').classList.add('drag-over');
-    });
-    area.addEventListener('dragleave', () => {
-      document.getElementById('dropZone').classList.remove('drag-over');
-    });
-    area.addEventListener('drop', e => {
-      e.preventDefault();
-      document.getElementById('dropZone').classList.remove('drag-over');
-      const f = e.dataTransfer.files[0];
-      if (f && f.type === 'application/pdf') this.loadFile(f);
-    });
-  }
-
-  /* ------------------------------------------------------------------ */
-  /*  PDF Loading                                                         */
-  /* ------------------------------------------------------------------ */
-
-  async loadFile(file) {
-    this.showLoading(true);
-    try {
-      const buf = await file.arrayBuffer();
-      this.pdfBytes = new Uint8Array(buf);
-
-      const task = pdfjsLib.getDocument({ data: this.pdfBytes.slice() });
-      this.pdfDoc    = await task.promise;
-      this.totalPages = this.pdfDoc.numPages;
-      this.currentPage = 1;
-      this.annotations = {};
-      this.history     = {};
-      this.selectedIdx = null;
-
-      document.getElementById('totalPages').textContent = this.totalPages;
-      document.getElementById('pageInput').max = this.totalPages;
-      document.getElementById('pageInput').disabled = false;
-      this.enableButtons(true);
-
-      document.getElementById('dropZone').style.display = 'none';
-      document.getElementById('canvasWrapper').style.display = 'block';
-      document.getElementById('canvasWrapper').dataset.tool = this.tool;
-
-      await this.renderPage(1);
-      this.generateThumbnails();
-      setTimeout(() => this.fitPage(), 100);
-    } catch (err) {
-      this.toast('Failed to load PDF: ' + err.message, 'error');
-    }
-    this.showLoading(false);
-  }
-
-  /* ------------------------------------------------------------------ */
-  /*  Rendering                                                           */
-  /* ------------------------------------------------------------------ */
-
-  async renderPage(num) {
-    if (!this.pdfDoc) return;
-    this.currentPage = Math.max(1, Math.min(this.totalPages, num));
-    document.getElementById('pageInput').value = this.currentPage;
-    document.getElementById('prevBtn').disabled = this.currentPage <= 1;
-    document.getElementById('nextBtn').disabled = this.currentPage >= this.totalPages;
-
-    const page     = await this.pdfDoc.getPage(this.currentPage);
-    const viewport = page.getViewport({ scale: this.scale });
-
-    this.pdfCanvas.width   = viewport.width;
-    this.pdfCanvas.height  = viewport.height;
-    this.annotCanvas.width  = viewport.width;
-    this.annotCanvas.height = viewport.height;
-
-    // Keep wrapper sized
-    const wrapper = document.getElementById('canvasWrapper');
-    wrapper.style.width  = viewport.width  + 'px';
-    wrapper.style.height = viewport.height + 'px';
-
-    await page.render({ canvasContext: this.pdfCtx, viewport }).promise;
-    this.redrawAnnotations();
-    this.updateActiveThumbnail();
-    this.refreshHistoryButtons();
-  }
-
-  redrawAnnotations() {
-    const ctx    = this.annotCtx;
-    const annots = this.annotations[this.currentPage] || [];
-    ctx.clearRect(0, 0, this.annotCanvas.width, this.annotCanvas.height);
-    annots.forEach((a, i) => this.drawAnnot(ctx, a, i === this.selectedIdx));
-  }
-
-  drawAnnot(ctx, a, selected) {
-    ctx.save();
-    ctx.globalAlpha  = a.opacity ?? 1;
-    ctx.strokeStyle  = a.color;
-    ctx.fillStyle    = a.color;
-    ctx.lineWidth    = a.width ?? 2;
-    ctx.lineCap      = 'round';
-    ctx.lineJoin     = 'round';
-
-    switch (a.type) {
-      case 'pen':
-        this.pathStroke(ctx, a.points);
-        break;
-
-      case 'highlighter':
-        ctx.globalAlpha = Math.min(a.opacity ?? 1, 0.35);
-        ctx.lineWidth   = (a.width ?? 3) * 4;
-        this.pathStroke(ctx, a.points);
-        break;
-
-      case 'text':
-        ctx.globalAlpha = a.opacity ?? 1;
-        ctx.font        = `${a.fontSize ?? 18}px Arial, sans-serif`;
-        ctx.fillStyle   = a.color;
-        // Multi-line support
-        (a.text || '').split('\n').forEach((line, i) =>
-          ctx.fillText(line, a.x, a.y + i * (a.fontSize ?? 18) * 1.3));
-        break;
-
-      case 'rect': {
-        ctx.strokeRect(a.x, a.y, a.w, a.h);
-        break;
-      }
-
-      case 'circle': {
-        const cx = a.x + a.rx, cy = a.y + a.ry;
-        ctx.beginPath();
-        ctx.ellipse(cx, cy, Math.abs(a.rx), Math.abs(a.ry), 0, 0, Math.PI * 2);
-        ctx.stroke();
-        break;
-      }
-
-      case 'line':
-        ctx.beginPath();
-        ctx.moveTo(a.x1, a.y1);
-        ctx.lineTo(a.x2, a.y2);
-        ctx.stroke();
-        break;
-
-      case 'arrow':
-        this.drawArrow(ctx, a.x1, a.y1, a.x2, a.y2);
-        break;
+      ctx.restore();
     }
 
-    if (selected) {
-      const b = this.bounds(a);
-      if (b) {
-        ctx.save();
-        ctx.globalAlpha  = 0.8;
-        ctx.strokeStyle  = '#4f8ef7';
-        ctx.lineWidth    = 1.5;
-        ctx.setLineDash([4, 3]);
-        ctx.strokeRect(b.x - 6, b.y - 6, b.w + 12, b.h + 12);
-        ctx.restore();
+    _drawArrow(ctx, x1, y1, x2, y2) {
+      const angle   = Math.atan2(y2 - y1, x2 - x1);
+      const headLen = Math.max(12, (ctx.lineWidth || 2) * 4);
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(
+        x2 - headLen * Math.cos(angle - Math.PI / 6),
+        y2 - headLen * Math.sin(angle - Math.PI / 6)
+      );
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(
+        x2 - headLen * Math.cos(angle + Math.PI / 6),
+        y2 - headLen * Math.sin(angle + Math.PI / 6)
+      );
+      ctx.stroke();
+    }
+
+    _redrawAnnotations() {
+      const ctx = this.annotCtx;
+      ctx.clearRect(0, 0, this.annotCanvas.width, this.annotCanvas.height);
+      const annots = this.annotations[this.currentPage] || [];
+      annots.forEach(a => this._drawAnnotation(ctx, a, a === this.selectedAnnot));
+    }
+
+    _addAnnotation(annot) {
+      const pg = this.currentPage;
+      this.annotations[pg].push(annot);
+      this._pushHistory(pg);
+      this._redrawAnnotations();
+      this._updateUndoRedo();
+    }
+
+    _trySelect(x, y) {
+      const annots = this.annotations[this.currentPage] || [];
+      let found = null;
+      for (let i = annots.length - 1; i >= 0; i--) {
+        if (this._hitTest(annots[i], x, y)) { found = annots[i]; break; }
+      }
+      this.selectedAnnot = found;
+      this._redrawAnnotations();
+      this._updatePropsPanel();
+    }
+
+    _hitTest(annot, x, y) {
+      const bb = this._boundingBox(annot);
+      if (!bb) return false;
+      const pad = 10;
+      return x >= bb.x - pad && x <= bb.x + bb.w + pad &&
+             y >= bb.y - pad && y <= bb.y + bb.h + pad;
+    }
+
+    _boundingBox(annot) {
+      if (!annot) return null;
+      switch (annot.type) {
+        case 'pen':
+        case 'highlighter': {
+          if (!annot.points || annot.points.length === 0) return null;
+          let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+          annot.points.forEach(p => {
+            if (p.x < minX) minX = p.x; if (p.y < minY) minY = p.y;
+            if (p.x > maxX) maxX = p.x; if (p.y > maxY) maxY = p.y;
+          });
+          return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+        }
+        case 'text': {
+          const fs    = annot.fontSize || 18;
+          const lines = (annot.text || '').split('\n');
+          const maxLen = lines.reduce((m, l) => Math.max(m, l.length), 0);
+          return { x: annot.x, y: annot.y - fs,
+                   w: maxLen * fs * 0.6, h: lines.length * fs * 1.4 };
+        }
+        case 'rect':
+          return { x: annot.x, y: annot.y, w: annot.w, h: annot.h };
+        case 'circle':
+          return { x: annot.x, y: annot.y, w: annot.rx * 2, h: annot.ry * 2 };
+        case 'line':
+        case 'arrow':
+          return { x: Math.min(annot.x1, annot.x2), y: Math.min(annot.y1, annot.y2),
+                   w: Math.abs(annot.x2 - annot.x1), h: Math.abs(annot.y2 - annot.y1) };
+        default: return null;
       }
     }
 
-    ctx.restore();
-  }
-
-  pathStroke(ctx, pts) {
-    if (!pts || pts.length < 2) return;
-    ctx.beginPath();
-    ctx.moveTo(pts[0].x, pts[0].y);
-    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
-    ctx.stroke();
-  }
-
-  drawArrow(ctx, x1, y1, x2, y2) {
-    const headLen = Math.max(12, (ctx.lineWidth) * 5);
-    const angle   = Math.atan2(y2 - y1, x2 - x1);
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x2, y2);
-    ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6),
-               y2 - headLen * Math.sin(angle - Math.PI / 6));
-    ctx.moveTo(x2, y2);
-    ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6),
-               y2 - headLen * Math.sin(angle + Math.PI / 6));
-    ctx.stroke();
-  }
-
-  /* ------------------------------------------------------------------ */
-  /*  Mouse / Touch handlers                                              */
-  /* ------------------------------------------------------------------ */
-
-  toMouse(e) {
-    const t = e.touches[0] || e.changedTouches[0];
-    return { clientX: t.clientX, clientY: t.clientY };
-  }
-
-  pos(e) {
-    const rect = this.annotCanvas.getBoundingClientRect();
-    return {
-      x: (e.clientX - rect.left) * (this.annotCanvas.width  / rect.width),
-      y: (e.clientY - rect.top)  * (this.annotCanvas.height / rect.height)
-    };
-  }
-
-  onDown(e) {
-    if (!this.pdfDoc) return;
-    const { x, y } = this.pos(e);
-    this.startX = x; this.startY = y;
-    this.isDrawing = true;
-
-    if (this.tool === 'text') {
-      this.isDrawing = false;
-      this.placeText(x, y);
-      return;
-    }
-    if (this.tool === 'select') {
-      this.isDrawing = false;
-      this.selectAt(x, y);
-      return;
-    }
-    if (this.tool === 'eraser') {
-      this.isDrawing = false;
-      this.eraseAt(x, y);
-      return;
-    }
-
-    this.snapshot = this.annotCtx.getImageData(
-      0, 0, this.annotCanvas.width, this.annotCanvas.height);
-
-    if (this.tool === 'pen' || this.tool === 'highlighter') {
-      this.currentPath = [{ x, y }];
-    }
-  }
-
-  onMove(e) {
-    if (!this.isDrawing || !this.pdfDoc) return;
-    const { x, y } = this.pos(e);
-
-    if (this.tool === 'pen' || this.tool === 'highlighter') {
-      this.currentPath.push({ x, y });
-      this.annotCtx.putImageData(this.snapshot, 0, 0);
-      this.drawAnnot(this.annotCtx, this.buildAnnot(this.tool, x, y), false);
-      return;
-    }
-
-    // Shape preview
-    if (this.snapshot) this.annotCtx.putImageData(this.snapshot, 0, 0);
-    const preview = this.buildAnnot(this.tool, x, y);
-    if (preview) this.drawAnnot(this.annotCtx, preview, false);
-  }
-
-  onUp(e) {
-    if (!this.isDrawing || !this.pdfDoc) return;
-    this.isDrawing = false;
-
-    let endX = this.startX, endY = this.startY;
-    if (e.clientX !== undefined) { const p = this.pos(e); endX = p.x; endY = p.y; }
-
-    let annot = null;
-    if (this.tool === 'pen' || this.tool === 'highlighter') {
-      if (this.currentPath.length > 1) annot = this.buildAnnot(this.tool, endX, endY);
-      this.currentPath = [];
-    } else if (!['select','eraser','text'].includes(this.tool)) {
-      annot = this.buildAnnot(this.tool, endX, endY);
-    }
-
-    if (annot) this.pushAnnot(annot);
-    this.snapshot = null;
-    this.redrawAnnotations();
-  }
-
-  buildAnnot(tool, x2, y2) {
-    const base = { color: this.color, width: this.strokeWidth, opacity: this.opacity };
-    switch (tool) {
-      case 'pen':
-      case 'highlighter':
-        return { ...base, type: tool, points: [...this.currentPath] };
-      case 'rect':
-        return { ...base, type: 'rect',   x: this.startX, y: this.startY,
-                 w: x2 - this.startX, h: y2 - this.startY };
-      case 'circle':
-        return { ...base, type: 'circle', x: this.startX, y: this.startY,
-                 rx: (x2 - this.startX) / 2, ry: (y2 - this.startY) / 2 };
-      case 'line':
-        return { ...base, type: 'line',   x1: this.startX, y1: this.startY, x2, y2 };
-      case 'arrow':
-        return { ...base, type: 'arrow',  x1: this.startX, y1: this.startY, x2, y2 };
-    }
-    return null;
-  }
-
-  /* ------------------------------------------------------------------ */
-  /*  Text tool                                                           */
-  /* ------------------------------------------------------------------ */
-
-  placeText(cx, cy) {
-    const inp  = document.getElementById('textInput');
-    const rect = this.annotCanvas.getBoundingClientRect();
-    const sx   = rect.width  / this.annotCanvas.width;
-    const sy   = rect.height / this.annotCanvas.height;
-
-    inp.style.display  = 'block';
-    inp.style.left     = (rect.left + cx * sx) + 'px';
-    inp.style.top      = (rect.top  + cy * sy - this.fontSize * sy) + 'px';
-    inp.style.fontSize = (this.fontSize * sy) + 'px';
-    inp.style.color    = this.color;
-    inp.style.opacity  = this.opacity;
-    inp.value = '';
-    inp.focus();
-
-    const finish = () => {
-      const text = inp.value;
-      if (text.trim()) {
-        this.pushAnnot({
-          type: 'text', x: cx, y: cy,
-          text, color: this.color,
-          fontSize: this.fontSize,
-          opacity: this.opacity
-        });
-        this.redrawAnnotations();
-      }
-      inp.style.display = 'none';
-      inp.removeEventListener('blur',    finish);
-      inp.removeEventListener('keydown', onKey);
-    };
-
-    const onKey = e => {
-      if (e.key === 'Escape') { inp.value = ''; finish(); }
-    };
-
-    inp.addEventListener('blur',    finish);
-    inp.addEventListener('keydown', onKey);
-  }
-
-  /* ------------------------------------------------------------------ */
-  /*  Select / Erase                                                      */
-  /* ------------------------------------------------------------------ */
-
-  selectAt(x, y) {
-    const annots = this.annotations[this.currentPage] || [];
-    this.selectedIdx = null;
-    for (let i = annots.length - 1; i >= 0; i--) {
-      if (this.hitTest(annots[i], x, y)) { this.selectedIdx = i; break; }
-    }
-    this.redrawAnnotations();
-    this.renderProps();
-  }
-
-  eraseAt(x, y) {
-    const annots = this.annotations[this.currentPage] || [];
-    const before = annots.length;
-    this.annotations[this.currentPage] = annots.filter(a => !this.hitTest(a, x, y));
-    if (this.annotations[this.currentPage].length !== before) {
-      if (this.selectedIdx !== null &&
-          this.selectedIdx >= this.annotations[this.currentPage].length)
-        this.selectedIdx = null;
-      this.saveHistory();
-      this.redrawAnnotations();
-      this.renderProps();
-    }
-  }
-
-  deleteSelected() {
-    if (this.selectedIdx === null) return;
-    const annots = this.annotations[this.currentPage] || [];
-    annots.splice(this.selectedIdx, 1);
-    this.annotations[this.currentPage] = annots;
-    this.selectedIdx = null;
-    this.saveHistory();
-    this.redrawAnnotations();
-    this.renderProps();
-  }
-
-  hitTest(a, x, y) {
-    const b = this.bounds(a);
-    if (!b) return false;
-    const pad = 10;
-    return x >= b.x - pad && x <= b.x + b.w + pad &&
-           y >= b.y - pad && y <= b.y + b.h + pad;
-  }
-
-  bounds(a) {
-    switch (a.type) {
-      case 'pen':
-      case 'highlighter': {
-        if (!a.points || !a.points.length) return null;
-        const xs = a.points.map(p => p.x), ys = a.points.map(p => p.y);
-        const x = Math.min(...xs), y = Math.min(...ys);
-        return { x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y };
-      }
-      case 'text':
-        return { x: a.x, y: a.y - (a.fontSize ?? 18), w: 120, h: a.fontSize ?? 18 };
-      case 'rect':
-        return { x: Math.min(a.x, a.x + a.w), y: Math.min(a.y, a.y + a.h),
-                 w: Math.abs(a.w), h: Math.abs(a.h) };
-      case 'circle':
-        return { x: a.x, y: a.y, w: Math.abs(a.rx) * 2, h: Math.abs(a.ry) * 2 };
-      case 'line':
-      case 'arrow': {
-        const x = Math.min(a.x1, a.x2), y = Math.min(a.y1, a.y2);
-        return { x, y, w: Math.abs(a.x2 - a.x1), h: Math.abs(a.y2 - a.y1) };
+    _eraseAt(x, y) {
+      const pg     = this.currentPage;
+      const annots = this.annotations[pg];
+      for (let i = annots.length - 1; i >= 0; i--) {
+        if (this._hitTest(annots[i], x, y)) {
+          if (this.selectedAnnot === annots[i]) {
+            this.selectedAnnot = null;
+            this._updatePropsPanel();
+          }
+          annots.splice(i, 1);
+          this._pushHistory(pg);
+          this._redrawAnnotations();
+          this._updateUndoRedo();
+          return;
+        }
       }
     }
-    return null;
-  }
 
-  /* ------------------------------------------------------------------ */
-  /*  Annotations store / history                                         */
-  /* ------------------------------------------------------------------ */
-
-  pushAnnot(a) {
-    if (!this.annotations[this.currentPage])
-      this.annotations[this.currentPage] = [];
-    this.annotations[this.currentPage].push(a);
-    this.saveHistory();
-  }
-
-  saveHistory() {
-    const n = this.currentPage;
-    if (!this.history[n]) this.history[n] = { stack: [], index: -1 };
-    const h = this.history[n];
-    h.stack = h.stack.slice(0, h.index + 1);
-    h.stack.push(JSON.stringify(this.annotations[n] || []));
-    h.index = h.stack.length - 1;
-    this.refreshHistoryButtons();
-  }
-
-  undo() {
-    const n = this.currentPage;
-    const h = this.history[n];
-    if (!h || h.index <= 0) return;
-    h.index--;
-    this.annotations[n] = JSON.parse(h.stack[h.index]);
-    if (this.selectedIdx !== null &&
-        this.selectedIdx >= (this.annotations[n] || []).length)
-      this.selectedIdx = null;
-    this.redrawAnnotations();
-    this.renderProps();
-    this.refreshHistoryButtons();
-  }
-
-  redo() {
-    const n = this.currentPage;
-    const h = this.history[n];
-    if (!h || h.index >= h.stack.length - 1) return;
-    h.index++;
-    this.annotations[n] = JSON.parse(h.stack[h.index]);
-    this.redrawAnnotations();
-    this.refreshHistoryButtons();
-  }
-
-  refreshHistoryButtons() {
-    const n = this.currentPage;
-    const h = this.history[n];
-    document.getElementById('undoBtn').disabled = !h || h.index <= 0;
-    document.getElementById('redoBtn').disabled = !h || h.index >= h.stack.length - 1;
-  }
-
-  /* ------------------------------------------------------------------ */
-  /*  Properties panel                                                    */
-  /* ------------------------------------------------------------------ */
-
-  renderProps() {
-    const body = document.getElementById('propsBody');
-    if (this.selectedIdx === null) {
-      body.innerHTML = '<p class="props-empty">No annotation selected</p>';
-      return;
+    _deleteSelected() {
+      if (!this.selectedAnnot) return;
+      const pg     = this.currentPage;
+      const annots = this.annotations[pg];
+      const idx    = annots.indexOf(this.selectedAnnot);
+      if (idx !== -1) {
+        annots.splice(idx, 1);
+        this.selectedAnnot = null;
+        this._pushHistory(pg);
+        this._redrawAnnotations();
+        this._updateUndoRedo();
+        this._updatePropsPanel();
+      }
     }
-    const a = (this.annotations[this.currentPage] || [])[this.selectedIdx];
-    if (!a) { body.innerHTML = '<p class="props-empty">No annotation selected</p>'; return; }
 
-    body.innerHTML = `
-      <div class="prop-row">
-        <label>Type</label>
-        <span class="prop-type-badge">${a.type}</span>
-      </div>
-      <div class="prop-row">
-        <label>Color</label>
-        <input type="color" value="${a.color}" id="propColor">
-      </div>
-      ${a.type !== 'text' ? `
-      <div class="prop-row">
-        <label>Stroke Width (<span id="propWidthVal">${a.width ?? 2}</span>)</label>
-        <input type="range" min="1" max="30" value="${a.width ?? 2}" id="propWidth">
-      </div>` : `
-      <div class="prop-row">
-        <label>Font Size (<span id="propFontVal">${a.fontSize ?? 18}</span>px)</label>
-        <input type="range" min="8" max="72" value="${a.fontSize ?? 18}" id="propFont">
-      </div>`}
-      <div class="prop-row">
-        <label>Opacity (<span id="propOpacityVal">${Math.round((a.opacity ?? 1) * 100)}</span>%)</label>
-        <input type="range" min="5" max="100" value="${Math.round((a.opacity ?? 1) * 100)}" id="propOpacity">
-      </div>
-      <button class="prop-delete-btn" id="propDeleteBtn">🗑 Delete annotation</button>
-    `;
+    _placeTextInput(x, y) {
+      if (this.textInput.style.display !== 'none') this._confirmText();
 
-    document.getElementById('propColor').addEventListener('input', e => {
-      this.updateSelected('color', e.target.value);
-    });
+      const cRect  = this.annotCanvas.getBoundingClientRect();
+      const scaleX = this.annotCanvas.width  / cRect.width;
+      const scaleY = this.annotCanvas.height / cRect.height;
+      const cssX   = x / scaleX;
+      const cssY   = y / scaleY;
 
-    const pw = document.getElementById('propWidth');
-    if (pw) pw.addEventListener('input', e => {
-      document.getElementById('propWidthVal').textContent = e.target.value;
-      this.updateSelected('width', parseInt(e.target.value));
-    });
+      this.textInput.style.left     = cssX + 'px';
+      this.textInput.style.top      = (cssY - this.fontSize / scaleY) + 'px';
+      this.textInput.style.fontSize = (this.fontSize / scaleY) + 'px';
+      this.textInput.style.color    = this.color;
+      this.textInput.style.opacity  = this.opacity;
+      this.textInput.style.display  = 'block';
+      this.textInput.value          = '';
 
-    const pf = document.getElementById('propFont');
-    if (pf) pf.addEventListener('input', e => {
-      document.getElementById('propFontVal').textContent = e.target.value;
-      this.updateSelected('fontSize', parseInt(e.target.value));
-    });
+      this._textCanvasX = x;
+      this._textCanvasY = y;
 
-    document.getElementById('propOpacity').addEventListener('input', e => {
-      document.getElementById('propOpacityVal').textContent = e.target.value;
-      this.updateSelected('opacity', parseInt(e.target.value) / 100);
-    });
+      setTimeout(() => this.textInput.focus(), 10);
+    }
 
-    document.getElementById('propDeleteBtn').addEventListener('click', () => this.deleteSelected());
-  }
+    _confirmText() {
+      const txt = this.textInput.value.trim();
+      this.textInput.style.display = 'none';
+      if (!txt) return;
+      const annot = {
+        type:     'text',
+        x:        this._textCanvasX,
+        y:        this._textCanvasY,
+        text:     txt,
+        color:    this.color,
+        fontSize: this.fontSize,
+        opacity:  this.opacity
+      };
+      this._addAnnotation(annot);
+    }
 
-  updateSelected(prop, value) {
-    if (this.selectedIdx === null) return;
-    const annots = this.annotations[this.currentPage];
-    if (!annots || !annots[this.selectedIdx]) return;
-    annots[this.selectedIdx][prop] = value;
-    this.redrawAnnotations();
-  }
+    _pushHistory(pg) {
+      const snap    = JSON.stringify(this.annotations[pg]);
+      const history = this.history[pg];
+      const idx     = this.historyIndex[pg];
+      history.splice(idx + 1);
+      history.push(snap);
+      this.historyIndex[pg] = history.length - 1;
+      this._updateUndoRedo();
+    }
 
-  /* ------------------------------------------------------------------ */
-  /*  Navigation & Zoom                                                   */
-  /* ------------------------------------------------------------------ */
+    _undo() {
+      if (!this.pdfDoc) return;
+      const pg  = this.currentPage;
+      const idx = this.historyIndex[pg];
+      if (idx <= 0) return;
+      this.historyIndex[pg] = idx - 1;
+      this.annotations[pg]  = JSON.parse(this.history[pg][idx - 1]);
+      this.selectedAnnot    = null;
+      this._redrawAnnotations();
+      this._updateUndoRedo();
+      this._updatePropsPanel();
+    }
 
-  async goTo(n) {
-    n = Math.max(1, Math.min(this.totalPages, n || 1));
-    if (n === this.currentPage) return;
-    this.selectedIdx = null;
-    await this.renderPage(n);
-    this.renderProps();
-  }
+    _redo() {
+      if (!this.pdfDoc) return;
+      const pg  = this.currentPage;
+      const idx = this.historyIndex[pg];
+      if (idx >= this.history[pg].length - 1) return;
+      this.historyIndex[pg] = idx + 1;
+      this.annotations[pg]  = JSON.parse(this.history[pg][idx + 1]);
+      this.selectedAnnot    = null;
+      this._redrawAnnotations();
+      this._updateUndoRedo();
+      this._updatePropsPanel();
+    }
 
-  zoom(s) {
-    this.scale = Math.max(0.25, Math.min(5, s));
-    document.getElementById('zoomLabel').textContent = Math.round(this.scale * 100) + '%';
-    this.renderPage(this.currentPage);
-  }
+    _updateUndoRedo() {
+      if (!this.pdfDoc) return;
+      const pg  = this.currentPage;
+      const idx = this.historyIndex[pg] || 0;
+      this.undoBtn.disabled = idx <= 0;
+      this.redoBtn.disabled = idx >= (this.history[pg] || []).length - 1;
+    }
 
-  fitPage() {
-    if (!this.pdfDoc) return;
-    const area = document.getElementById('canvasArea');
-    const w = area.clientWidth  - 48;
-    const h = area.clientHeight - 48;
-    this.pdfDoc.getPage(this.currentPage).then(page => {
-      const vp = page.getViewport({ scale: 1 });
-      this.zoom(Math.min(w / vp.width, h / vp.height));
-    });
-  }
+    _updatePropsPanel() {
+      const pb = this.propsBody;
+      if (!this.selectedAnnot) {
+        pb.innerHTML = '<p class="props-empty">No annotation selected</p>';
+        return;
+      }
+      const a = this.selectedAnnot;
+      let html = '<div class="prop-row"><label>Type</label>';
+      html += '<span class="prop-type-badge">' + a.type + '</span></div>';
 
-  /* ------------------------------------------------------------------ */
-  /*  Thumbnails                                                          */
-  /* ------------------------------------------------------------------ */
+      if (a.color !== undefined) {
+        html += '<div class="prop-row"><label>Color</label>';
+        html += '<input type="color" id="propColor" value="' + a.color + '" /></div>';
+      }
+      if (a.width !== undefined && a.type !== 'text') {
+        const w = Math.round(a.width);
+        html += '<div class="prop-row"><label>Width</label>';
+        html += '<input type="range" id="propWidth" min="1" max="30" value="' + w + '" />';
+        html += '<span id="propWidthVal">' + w + '</span></div>';
+      }
+      if (a.opacity !== undefined) {
+        const opPct = Math.round(a.opacity * 100);
+        html += '<div class="prop-row"><label>Opacity</label>';
+        html += '<input type="range" id="propOpacity" min="5" max="100" value="' + opPct + '" />';
+        html += '<span id="propOpacityVal">' + opPct + '%</span></div>';
+      }
+      if (a.type === 'text') {
+        const fs = Math.round(a.fontSize);
+        html += '<div class="prop-row"><label>Font Size</label>';
+        html += '<input type="range" id="propFontSize" min="8" max="72" value="' + fs + '" />';
+        html += '<span id="propFontSizeVal">' + fs + 'px</span></div>';
+        html += '<div class="prop-row"><label>Text</label>';
+        html += '<input type="text" id="propText" value="' + this._escAttr(a.text) + '" /></div>';
+      }
+      html += '<button class="prop-delete-btn" id="propDeleteBtn">Delete Annotation</button>';
+      pb.innerHTML = html;
 
-  async generateThumbnails() {
-    const container = document.getElementById('thumbContainer');
-    container.innerHTML = '';
+      const pc = document.getElementById('propColor');
+      if (pc) pc.addEventListener('input', e => {
+        a.color = e.target.value;
+        this.colorPicker.value = e.target.value;
+        this.color = e.target.value;
+        this._redrawAnnotations();
+      });
 
-    for (let i = 1; i <= this.totalPages; i++) {
-      const wrap  = document.createElement('div');
-      wrap.className = 'thumb-item';
-      wrap.dataset.page = i;
-      wrap.title = `Page ${i}`;
-      const cv    = document.createElement('canvas');
-      const label = document.createElement('span');
-      label.className = 'thumb-num';
-      label.textContent = i;
-      wrap.appendChild(cv);
-      wrap.appendChild(label);
-      container.appendChild(wrap);
-      wrap.addEventListener('click', () => this.goTo(i));
+      const pw = document.getElementById('propWidth');
+      if (pw) pw.addEventListener('input', e => {
+        a.width = parseInt(e.target.value, 10);
+        document.getElementById('propWidthVal').textContent = a.width;
+        this._redrawAnnotations();
+      });
 
+      const po = document.getElementById('propOpacity');
+      if (po) po.addEventListener('input', e => {
+        a.opacity = parseInt(e.target.value, 10) / 100;
+        document.getElementById('propOpacityVal').textContent = e.target.value + '%';
+        this._redrawAnnotations();
+      });
+
+      const pfs = document.getElementById('propFontSize');
+      if (pfs) pfs.addEventListener('input', e => {
+        a.fontSize = parseInt(e.target.value, 10);
+        document.getElementById('propFontSizeVal').textContent = a.fontSize + 'px';
+        this._redrawAnnotations();
+      });
+
+      const pt = document.getElementById('propText');
+      if (pt) pt.addEventListener('input', e => {
+        a.text = e.target.value;
+        this._redrawAnnotations();
+      });
+
+      document.getElementById('propDeleteBtn').addEventListener('click', () => this._deleteSelected());
+    }
+
+    _escAttr(str) {
+      return (str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;');
+    }
+
+    _scaleAnnotation(annot, ratio) {
+      const a = JSON.parse(JSON.stringify(annot));
+      switch (a.type) {
+        case 'pen':
+        case 'highlighter':
+          a.points = a.points.map(p => ({ x: p.x * ratio, y: p.y * ratio }));
+          a.width  = a.width * ratio;
+          break;
+        case 'text':
+          a.x        = a.x        * ratio;
+          a.y        = a.y        * ratio;
+          a.fontSize = a.fontSize * ratio;
+          break;
+        case 'rect':
+          a.x = a.x * ratio; a.y = a.y * ratio;
+          a.w = a.w * ratio; a.h = a.h * ratio;
+          a.width = a.width * ratio;
+          break;
+        case 'circle':
+          a.x  = a.x  * ratio; a.y  = a.y  * ratio;
+          a.rx = a.rx * ratio; a.ry = a.ry * ratio;
+          a.width = a.width * ratio;
+          break;
+        case 'line':
+        case 'arrow':
+          a.x1 = a.x1 * ratio; a.y1 = a.y1 * ratio;
+          a.x2 = a.x2 * ratio; a.y2 = a.y2 * ratio;
+          a.width = a.width * ratio;
+          break;
+      }
+      return a;
+    }
+
+    async _savePDF() {
+      if (!this.pdfDoc || !this.pdfBytes) {
+        this._toast('No PDF loaded', 'error');
+        return;
+      }
+      if (typeof PDFLib === 'undefined') {
+        this._toast('pdf-lib not loaded. Check CDN.', 'error');
+        return;
+      }
+      this._showLoading(true);
       try {
-        const page = await this.pdfDoc.getPage(i);
-        const vp   = page.getViewport({ scale: 0.18 });
-        cv.width   = vp.width;
-        cv.height  = vp.height;
-        await page.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
-      } catch (_) {}
-    }
-    this.updateActiveThumbnail();
-  }
+        const RENDER_SCALE  = 2;
+        const { PDFDocument } = PDFLib;
+        const pdfLibDoc     = await PDFDocument.load(this.pdfBytes.slice(0));
 
-  updateActiveThumbnail() {
-    document.querySelectorAll('.thumb-item').forEach(el => {
-      el.classList.toggle('active', parseInt(el.dataset.page) === this.currentPage);
-    });
-    const active = document.querySelector('.thumb-item.active');
-    if (active) active.scrollIntoView({ block: 'nearest' });
-  }
+        for (let pgNum = 1; pgNum <= this.totalPages; pgNum++) {
+          const annots = this.annotations[pgNum];
+          if (!annots || annots.length === 0) continue;
 
-  /* ------------------------------------------------------------------ */
-  /*  Save PDF                                                            */
-  /* ------------------------------------------------------------------ */
+          const pdfPage          = pdfLibDoc.getPage(pgNum - 1);
+          const { width: pdfW, height: pdfH } = pdfPage.getSize();
 
-  async savePDF() {
-    if (!this.pdfDoc || !this.pdfBytes) return;
-    const btn = document.getElementById('saveBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<span>Saving…</span>';
-    this.showLoading(true);
+          const pjsPage  = await this.pdfDoc.getPage(pgNum);
+          const viewport = pjsPage.getViewport({ scale: RENDER_SCALE });
 
-    try {
-      const { PDFDocument } = PDFLib;
-      const pdfLibDoc = await PDFDocument.load(this.pdfBytes);
-      const libPages  = pdfLibDoc.getPages();
+          const offCanvas    = document.createElement('canvas');
+          offCanvas.width    = viewport.width;
+          offCanvas.height   = viewport.height;
+          const offCtx       = offCanvas.getContext('2d');
+          await pjsPage.render({ canvasContext: offCtx, viewport }).promise;
 
-      for (let n = 1; n <= this.totalPages; n++) {
-        const annots = this.annotations[n];
-        if (!annots || !annots.length) continue;
+          const ratio        = RENDER_SCALE / this.currentScale;
+          const scaledAnnots = annots.map(a => this._scaleAnnotation(a, ratio));
+          scaledAnnots.forEach(a => this._drawAnnotation(offCtx, a, false));
 
-        // Render annotations at 2× for quality
-        const saveScale = 2;
-        const page      = await this.pdfDoc.getPage(n);
-        const vp        = page.getViewport({ scale: saveScale });
+          const pngDataUrl = offCanvas.toDataURL('image/png');
+          const pngBytes   = this._dataURLtoBytes(pngDataUrl);
+          const pngImage   = await pdfLibDoc.embedPng(pngBytes);
 
-        const offCanvas = document.createElement('canvas');
-        offCanvas.width  = vp.width;
-        offCanvas.height = vp.height;
-        const ctx = offCanvas.getContext('2d');
+          pdfPage.drawImage(pngImage, {
+            x:       0,
+            y:       0,
+            width:   pdfW,
+            height:  pdfH,
+            opacity: 1
+          });
+        }
 
-        const ratio = saveScale / this.scale;
-        annots.forEach(a => this.drawAnnot(ctx, this.scaleAnnot(a, ratio), false));
-
-        const dataUrl = offCanvas.toDataURL('image/png');
-        const resp    = await fetch(dataUrl);
-        const imgBuf  = await resp.arrayBuffer();
-        const pngImg  = await pdfLibDoc.embedPng(imgBuf);
-
-        const { width, height } = libPages[n - 1].getSize();
-        libPages[n - 1].drawImage(pngImg, { x: 0, y: 0, width, height });
+        const savedBytes = await pdfLibDoc.save();
+        this._downloadBlob(
+          new Blob([savedBytes], { type: 'application/pdf' }),
+          'edited.pdf'
+        );
+        this._toast('PDF saved successfully', 'success');
+      } catch (err) {
+        console.error(err);
+        this._toast('Save failed: ' + err.message, 'error');
+      } finally {
+        this._showLoading(false);
       }
-
-      const saved = await pdfLibDoc.save();
-      this.downloadBytes(saved, 'edited.pdf', 'application/pdf');
-      this.toast('PDF saved!', 'success');
-    } catch (err) {
-      this.toast('Save failed: ' + err.message, 'error');
     }
 
-    btn.disabled = false;
-    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-      <polyline points="17 21 17 13 7 13 7 21"/>
-      <polyline points="7 3 7 8 15 8"/>
-    </svg> Save PDF`;
-    this.showLoading(false);
-  }
+    _exportImage() {
+      if (!this.pdfDoc) {
+        this._toast('No PDF loaded', 'error');
+        return;
+      }
+      const composite    = document.createElement('canvas');
+      composite.width    = this.pdfCanvas.width;
+      composite.height   = this.pdfCanvas.height;
+      const ctx          = composite.getContext('2d');
+      ctx.drawImage(this.pdfCanvas,   0, 0);
+      ctx.drawImage(this.annotCanvas, 0, 0);
+      composite.toBlob(blob => {
+        this._downloadBlob(blob, 'page-' + this.currentPage + '.png');
+        this._toast('Image exported', 'success');
+      }, 'image/png');
+    }
 
-  scaleAnnot(a, r) {
-    const s = { ...a };
-    if (a.points)     s.points    = a.points.map(p => ({ x: p.x * r, y: p.y * r }));
-    if (a.x  != null) s.x  = a.x  * r;
-    if (a.y  != null) s.y  = a.y  * r;
-    if (a.w  != null) s.w  = a.w  * r;
-    if (a.h  != null) s.h  = a.h  * r;
-    if (a.rx != null) s.rx = a.rx * r;
-    if (a.ry != null) s.ry = a.ry * r;
-    if (a.x1 != null) { s.x1 = a.x1 * r; s.y1 = a.y1 * r; }
-    if (a.x2 != null) { s.x2 = a.x2 * r; s.y2 = a.y2 * r; }
-    if (a.fontSize != null) s.fontSize = a.fontSize * r;
-    if (a.width    != null) s.width    = a.width    * r;
-    return s;
-  }
+    _dataURLtoBytes(dataURL) {
+      const base64 = dataURL.split(',')[1];
+      const raw    = atob(base64);
+      const bytes  = new Uint8Array(raw.length);
+      for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+      return bytes;
+    }
 
-  /* ------------------------------------------------------------------ */
-  /*  Export Image                                                        */
-  /* ------------------------------------------------------------------ */
+    _downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a   = document.createElement('a');
+      a.href     = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
+    }
 
-  exportImage() {
-    const composite = document.createElement('canvas');
-    composite.width  = this.pdfCanvas.width;
-    composite.height = this.pdfCanvas.height;
-    const ctx = composite.getContext('2d');
-    ctx.drawImage(this.pdfCanvas,   0, 0);
-    ctx.drawImage(this.annotCanvas, 0, 0);
-    composite.toBlob(blob => {
-      this.downloadBytes(blob, `page-${this.currentPage}.png`, 'image/png');
-      this.toast(`Page ${this.currentPage} exported!`, 'success');
-    });
-  }
+    _enableControls(enabled) {
+      [this.saveBtn, this.exportImgBtn, this.prevBtn, this.nextBtn,
+       this.pageInput, this.zoomInBtn, this.zoomOutBtn, this.fitBtn].forEach(el => {
+        el.disabled = !enabled;
+      });
+      if (enabled) {
+        this.undoBtn.disabled = true;
+        this.redoBtn.disabled = true;
+        this._updatePageInput();
+      }
+    }
 
-  /* ------------------------------------------------------------------ */
-  /*  Helpers                                                             */
-  /* ------------------------------------------------------------------ */
+    _showLoading(show) {
+      this.loadingOverlay.style.display = show ? 'flex' : 'none';
+    }
 
-  downloadBytes(data, name, type) {
-    const blob = data instanceof Blob ? data : new Blob([data], { type });
-    const url  = URL.createObjectURL(blob);
-    const a    = Object.assign(document.createElement('a'), { href: url, download: name });
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }
-
-  enableButtons(on) {
-    ['saveBtn', 'exportImgBtn', 'prevBtn', 'nextBtn',
-     'zoomInBtn', 'zoomOutBtn', 'fitBtn'].forEach(id => {
-      document.getElementById(id).disabled = !on;
-    });
-  }
-
-  showLoading(show) {
-    document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
-  }
-
-  toast(msg, type = '') {
-    let el = document.querySelector('.toast');
-    if (!el) {
-      el = document.createElement('div');
-      el.className = 'toast';
+    _createToast() {
+      const el       = document.createElement('div');
+      el.className   = 'toast';
       document.body.appendChild(el);
+      return el;
     }
-    el.textContent = msg;
-    el.className   = `toast ${type}`;
-    el.classList.add('show');
-    clearTimeout(el._timer);
-    el._timer = setTimeout(() => el.classList.remove('show'), 3000);
-  }
-}
 
-document.addEventListener('DOMContentLoaded', () => { window.editor = new PDFEditor(); });
+    _toast(msg, type) {
+      clearTimeout(this._toastTimer);
+      this.toastEl.textContent = msg;
+      this.toastEl.className   = 'toast' + (type ? ' ' + type : '');
+      void this.toastEl.offsetWidth;
+      this.toastEl.classList.add('show');
+      this._toastTimer = setTimeout(() => this.toastEl.classList.remove('show'), 3000);
+    }
+  }
+
+})();
