@@ -44,6 +44,43 @@
         </svg>
         Export Image
       </button>
+      <div class="toolbar-divider"></div>
+      <div class="dropdown" id="pagesDropdown">
+        <button class="btn btn-secondary dropdown-toggle" id="pagesBtn" title="Page operations" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="13" x2="12" y2="18"/>
+            <line x1="9.5" y1="15.5" x2="14.5" y2="15.5"/>
+          </svg>
+          Pages &#9660;
+        </button>
+        <div class="dropdown-menu" id="pagesMenu">
+          <button class="dropdown-item" id="addPageBeforeBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            Add Blank Page Before
+          </button>
+          <button class="dropdown-item" id="addPageAfterBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            Add Blank Page After
+          </button>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item" id="extractPagesBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Extract Pages…
+          </button>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item item-danger" id="deletePageBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            Delete Current Page
+          </button>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item" id="scannerBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            Create from Scanner…
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Center: Page controls + Zoom -->
@@ -173,6 +210,21 @@
         </svg>
         <span>Eraser</span>
       </button>
+      <div class="tool-sep"></div>
+      <button class="tool-btn" data-tool="signature" title="Signature (I)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 17c2-2 4-4.5 6.5-5s4.5 2 6.5 0 4-4 5-5"/>
+          <path d="M3 20h18"/>
+        </svg>
+        <span>Sign</span>
+      </button>
+      <button class="tool-btn" data-tool="stamp" title="Stamp (M)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 22h14"/><path d="M12 22v-6"/>
+          <path d="M18 9c0-3.31-2.69-6-6-6S6 5.69 6 9c0 2.01.99 3.79 2.5 4.87V17h7v-3.13C17.01 12.79 18 11.01 18 9z"/>
+        </svg>
+        <span>Stamp</span>
+      </button>
     </div>
 
     <div class="tool-options" id="toolOptions">
@@ -236,6 +288,173 @@
   <div class="loading-overlay" id="loadingOverlay" style="display:none;">
     <div class="spinner"></div>
     <p>Processing PDF...</p>
+  </div>
+
+  <!-- ── Signature Modal ────────────────────────────────── -->
+  <div class="modal-backdrop" id="signatureModal" style="display:none;">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Signature</h3>
+        <button class="modal-close" id="sigModalClose">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="sig-tabs">
+          <button class="sig-tab active" data-sigtab="draw">Draw</button>
+          <button class="sig-tab" data-sigtab="type">Type</button>
+          <button class="sig-tab" data-sigtab="upload">Upload</button>
+        </div>
+        <!-- Draw tab -->
+        <div class="sig-tab-pane" id="sigPaneDraw">
+          <canvas id="sigCanvas" width="480" height="180"></canvas>
+          <div class="sig-tools">
+            <label class="opt-label">Color</label>
+            <input type="color" id="sigColor" value="#000066">
+            <label class="opt-label">Width</label>
+            <input type="range" id="sigWidth" min="1" max="8" value="2" style="width:70px">
+            <button class="btn btn-secondary btn-sm" id="sigClearBtn">Clear</button>
+          </div>
+        </div>
+        <!-- Type tab -->
+        <div class="sig-tab-pane" id="sigPaneType" style="display:none;">
+          <input type="text" id="sigTypeText" class="sig-type-input" placeholder="Type your name…">
+          <div class="sig-type-options">
+            <label class="opt-label">Font</label>
+            <select id="sigTypeFont" class="form-select">
+              <option value="italic bold 56px 'Brush Script MT',cursive">Script</option>
+              <option value="italic 52px Georgia,serif">Italic</option>
+              <option value="bold 52px 'Times New Roman',serif">Formal</option>
+              <option value="52px Arial,sans-serif">Print</option>
+            </select>
+            <label class="opt-label">Color</label>
+            <input type="color" id="sigTypeColor" value="#000066">
+          </div>
+          <canvas id="sigTypePreview" width="480" height="120" style="margin-top:10px;background:#fff;border-radius:4px;"></canvas>
+        </div>
+        <!-- Upload tab -->
+        <div class="sig-tab-pane" id="sigPaneUpload" style="display:none;">
+          <div class="upload-zone" id="sigUploadZone">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#4f8ef7" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <p>Drop image or click to select</p>
+            <input type="file" id="sigUploadInput" accept="image/*" hidden>
+          </div>
+          <img id="sigUploadPreview" class="sig-upload-preview" style="display:none;">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="sigCancelBtn">Cancel</button>
+        <button class="btn btn-primary"   id="sigOkBtn">Place Signature</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Stamp Modal ─────────────────────────────────────── -->
+  <div class="modal-backdrop" id="stampModal" style="display:none;">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h3>Company Stamp</h3>
+        <button class="modal-close" id="stampModalClose">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="stamp-layout">
+          <div class="stamp-form">
+            <div class="form-row">
+              <label>Style</label>
+              <select id="stampStyle" class="form-select">
+                <option value="round">Round Seal</option>
+                <option value="rect">Rectangular</option>
+                <option value="approved">APPROVED</option>
+                <option value="received">RECEIVED</option>
+                <option value="confidential">CONFIDENTIAL</option>
+                <option value="draft">DRAFT</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>Company / Main Text</label>
+              <input type="text" id="stampText" class="form-input" value="ACME CORPORATION" maxlength="50">
+            </div>
+            <div class="form-row">
+              <label>Sub-text (optional)</label>
+              <input type="text" id="stampSubtext" class="form-input" placeholder="e.g. Authorized Signatory" maxlength="50">
+            </div>
+            <div class="form-row">
+              <label>Color</label>
+              <input type="color" id="stampColor" value="#c0392b">
+            </div>
+            <div class="form-row">
+              <label>Include Date</label>
+              <input type="checkbox" id="stampIncludeDate">
+              <input type="date" id="stampDateVal" class="form-input" style="display:none;margin-top:4px;">
+            </div>
+            <div class="form-row">
+              <label>Opacity <span id="stampOpacityVal">80%</span></label>
+              <input type="range" id="stampOpacity" min="10" max="100" value="80" style="width:100%;">
+            </div>
+          </div>
+          <div class="stamp-preview-wrap">
+            <div class="stamp-preview-label">Preview</div>
+            <canvas id="stampPreviewCanvas" width="240" height="240"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="stampCancelBtn">Cancel</button>
+        <button class="btn btn-primary"   id="stampOkBtn">Place Stamp</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Extract Pages Modal ────────────────────────────── -->
+  <div class="modal-backdrop" id="extractModal" style="display:none;">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Extract Pages</h3>
+        <button class="modal-close" id="extractModalClose">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-hint">Select which pages to extract into a new PDF file.</p>
+        <div class="extract-sel-row">
+          <button class="btn btn-secondary btn-sm" id="extractSelAll">All</button>
+          <button class="btn btn-secondary btn-sm" id="extractSelNone">None</button>
+          <button class="btn btn-secondary btn-sm" id="extractSelCurrent">Current</button>
+        </div>
+        <div class="extract-grid" id="extractGrid"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="extractCancelBtn">Cancel</button>
+        <button class="btn btn-primary"   id="extractOkBtn">Extract</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Scanner Modal ──────────────────────────────────── -->
+  <div class="modal-backdrop" id="scannerModal" style="display:none;">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h3>Create PDF from Scanner / Images</h3>
+        <button class="modal-close" id="scannerModalClose">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="upload-zone" id="scannerDropZone">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#4f8ef7" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <p>Drop image files here or click to select</p>
+          <input type="file" id="scannerInput" accept="image/*" multiple hidden>
+          <button class="btn btn-primary btn-sm" id="scannerSelectBtn">Select Images</button>
+        </div>
+        <div class="scanner-grid" id="scannerGrid"></div>
+        <div class="scanner-opts" id="scannerOpts" style="display:none;">
+          <label class="opt-label">Page Size</label>
+          <select id="scannerPageSize" class="form-select">
+            <option value="fit">Fit to Image</option>
+            <option value="a4">A4 (595 × 842 pt)</option>
+            <option value="letter">US Letter (612 × 792 pt)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="scannerCancelBtn">Cancel</button>
+        <button class="btn btn-primary"   id="scannerCreateBtn" disabled>Create PDF</button>
+      </div>
+    </div>
   </div>
 
   <!-- Scripts -->

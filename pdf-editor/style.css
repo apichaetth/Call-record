@@ -607,6 +607,7 @@ input[type="range"] {
 
 .toast.success { border-color: var(--success); color: var(--success); }
 .toast.error   { border-color: var(--danger);  color: var(--danger); }
+.toast.info    { border-color: var(--accent);  color: var(--accent); }
 
 /* ---------- Selection handle ---------- */
 .selection-box {
@@ -631,4 +632,353 @@ input[type="range"] {
 @media (max-width: 640px) {
   .props-panel { display: none; }
   :root { --sidebar-w: 80px; }
+}
+
+/* ============================================================
+   New feature styles — Dropdown, Modals, Signature, Stamp
+   ============================================================ */
+
+/* ---------- Dropdown ---------- */
+.dropdown { position: relative; }
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 210px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  z-index: 500;
+  padding: 4px 0;
+}
+.dropdown-menu.open { display: block; }
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 14px;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+}
+.dropdown-item:hover { background: var(--bg-hover); color: var(--accent); }
+.dropdown-item.item-danger { color: var(--danger); }
+.dropdown-item.item-danger:hover { background: rgba(231,76,60,0.12); }
+.dropdown-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 3px 0;
+}
+.tool-sep {
+  width: 1px;
+  height: 32px;
+  background: var(--border);
+  margin: 0 4px;
+  align-self: center;
+}
+.btn-sm { padding: 3px 8px; font-size: 11px; }
+
+/* ---------- Modal backdrop & box ---------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(2px);
+}
+.modal {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  width: 540px;
+  max-width: 96vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+  overflow: hidden;
+}
+.modal-wide { width: 680px; }
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-header h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 20px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.modal-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+.modal-body {
+  padding: 16px 18px;
+  overflow-y: auto;
+  flex: 1;
+}
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--border);
+}
+.modal-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+/* ---------- Signature modal ---------- */
+.sig-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+.sig-tab {
+  padding: 5px 14px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all var(--transition);
+}
+.sig-tab.active {
+  background: var(--bg-active);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.sig-tab-pane { width: 100%; }
+#sigCanvas {
+  display: block;
+  width: 100%;
+  height: 180px;
+  background: #fff;
+  border-radius: 6px;
+  cursor: crosshair;
+  touch-action: none;
+}
+.sig-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.sig-type-input {
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-size: 14px;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+}
+.sig-type-input:focus { outline: none; border-color: var(--accent); }
+.sig-type-options {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.sig-upload-preview {
+  display: block;
+  max-width: 100%;
+  max-height: 200px;
+  margin: 10px auto 0;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+/* ---------- Upload zone (shared) ---------- */
+.upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 13px;
+  transition: border-color var(--transition), background var(--transition);
+}
+.upload-zone:hover, .upload-zone.drag-over {
+  border-color: var(--accent);
+  background: rgba(79,142,247,0.05);
+}
+
+/* ---------- Stamp modal ---------- */
+.stamp-layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+.stamp-form { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.form-row label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.form-input {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: var(--radius);
+  padding: 6px 10px;
+  font-size: 13px;
+}
+.form-input:focus { outline: none; border-color: var(--accent); }
+.form-select {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: var(--radius);
+  padding: 6px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.form-select:focus { outline: none; border-color: var(--accent); }
+.stamp-preview-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.stamp-preview-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+#stampPreviewCanvas {
+  background: #fff;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+/* ---------- Extract pages modal ---------- */
+.extract-sel-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.extract-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 2px;
+}
+.extract-page-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 6px 4px;
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background: var(--bg-surface);
+  transition: border-color var(--transition);
+}
+.extract-page-item.selected {
+  border-color: var(--accent);
+  background: var(--bg-active);
+}
+.extract-page-item canvas {
+  width: 64px;
+  height: auto;
+  display: block;
+  border-radius: 2px;
+}
+.extract-page-num {
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+/* ---------- Scanner modal ---------- */
+.scanner-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.scanner-page-item {
+  position: relative;
+  background: var(--bg-surface);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.scanner-page-item img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  display: block;
+}
+.scanner-page-num {
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-secondary);
+  padding: 3px 0;
+}
+.scanner-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  background: rgba(231,76,60,0.85);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.scanner-opts {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
