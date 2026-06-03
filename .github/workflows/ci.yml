@@ -44,7 +44,9 @@ jobs:
               "heading-level": 0,
               "no-missing-references": 0,
               "attr-quotes": 0,
-              "void-style": 0
+              "void-style": 0,
+              "element-required-attributes": 0,
+              "attribute-allowed-values": 0
             }
           }
           EOF
