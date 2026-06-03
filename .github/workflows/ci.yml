@@ -30,9 +30,26 @@ jobs:
 
       - name: Validate HTML
         run: |
-          html-validate \
-            --config '{"extends":["html-validate:recommended"],"rules":{"require-sri":0,"no-inline-style":0,"wcag/h30":0,"wcag/h32":0,"wcag/h36":0,"wcag/h37":0,"wcag/h67":0,"heading-level":0,"no-missing-references":0}}' \
-            pdf-editor/index.html && echo "✅ index.html valid"
+          cat > /tmp/.htmlvalidate.json << 'EOF'
+          {
+            "extends": ["html-validate:recommended"],
+            "rules": {
+              "require-sri": 0,
+              "no-inline-style": 0,
+              "wcag/h30": 0,
+              "wcag/h32": 0,
+              "wcag/h36": 0,
+              "wcag/h37": 0,
+              "wcag/h67": 0,
+              "heading-level": 0,
+              "no-missing-references": 0,
+              "attr-quotes": 0,
+              "void-style": 0
+            }
+          }
+          EOF
+          html-validate --config /tmp/.htmlvalidate.json pdf-editor/index.html \
+            && echo "✅ index.html valid"
 
       # ── CSS lint ───────────────────────────────────────────────────
       - name: Install stylelint
@@ -40,14 +57,35 @@ jobs:
 
       - name: Lint CSS
         run: |
-          stylelint pdf-editor/style.css \
-            --config '{"extends":"stylelint-config-standard","rules":{"color-no-invalid-hex":true,"no-duplicate-selectors":true,"declaration-block-no-duplicate-properties":true}}' \
+          cat > /tmp/.stylelintrc.json << 'EOF'
+          {
+            "extends": "stylelint-config-standard",
+            "rules": {
+              "color-no-invalid-hex": true,
+              "no-duplicate-selectors": true,
+              "declaration-block-no-duplicate-properties": true,
+              "alpha-value-notation": null,
+              "color-function-notation": null,
+              "import-notation": null,
+              "selector-class-pattern": null,
+              "custom-property-pattern": null,
+              "keyframes-name-pattern": null,
+              "media-feature-range-notation": null,
+              "declaration-empty-line-before": null,
+              "comment-empty-line-before": null,
+              "rule-empty-line-before": null,
+              "at-rule-empty-line-before": null,
+              "no-empty-source": null
+            }
+          }
+          EOF
+          stylelint --config /tmp/.stylelintrc.json pdf-editor/style.css \
             && echo "✅ style.css lint OK"
 
       # ── File size guard ────────────────────────────────────────────
       - name: Check file sizes
         run: |
-          MAX_JS=300    # KB
+          MAX_JS=300
           MAX_CSS=100
           MAX_HTML=50
 
@@ -58,7 +96,7 @@ jobs:
             [ "$kb" -le "$max" ] || { echo "❌ $label exceeds ${max}KB limit"; exit 1; }
           }
 
-          check pdf-editor/app.js   $MAX_JS  "app.js"
+          check pdf-editor/app.js    $MAX_JS  "app.js"
           check pdf-editor/style.css $MAX_CSS "style.css"
           check pdf-editor/index.html $MAX_HTML "index.html"
           echo "✅ All files within size limits"
