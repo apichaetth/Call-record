@@ -22,13 +22,13 @@
         <span class="brand-name">PDF Editor Pro</span>
       </div>
       <input type="file" id="fileInput" accept=".pdf" hidden />
-      <button class="btn btn-primary" id="openBtn" title="Open PDF (Ctrl+O)">
+      <button type="button" class="btn btn-primary" id="openBtn" title="Open PDF (Ctrl+O)">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
         </svg>
         Open PDF
       </button>
-      <button class="btn btn-success" id="saveBtn" title="Save PDF (Ctrl+S)" disabled>
+      <button type="button" class="btn btn-success" id="saveBtn" title="Save PDF (Ctrl+S)" disabled>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
           <polyline points="17 21 17 13 7 13 7 21"/>
@@ -36,7 +36,7 @@
         </svg>
         Save PDF
       </button>
-      <button class="btn btn-secondary" id="exportImgBtn" title="Export current page as PNG" disabled>
+      <button type="button" class="btn btn-secondary" id="exportImgBtn" title="Export current page as PNG" disabled>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
           <circle cx="8.5" cy="8.5" r="1.5"/>
@@ -46,7 +46,7 @@
       </button>
       <div class="toolbar-divider"></div>
       <div class="dropdown" id="pagesDropdown">
-        <button class="btn btn-secondary dropdown-toggle" id="pagesBtn" title="Page operations" disabled>
+        <button type="button" class="btn btn-secondary dropdown-toggle" id="pagesBtn" title="Page operations" disabled>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
             <polyline points="14 2 14 8 20 8"/>
@@ -56,28 +56,28 @@
           Pages &#9660;
         </button>
         <div class="dropdown-menu" id="pagesMenu">
-          <button class="dropdown-item" id="addPageBeforeBtn">
+          <button type="button" class="dropdown-item" id="addPageBeforeBtn">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
             Add Blank Page Before
           </button>
-          <button class="dropdown-item" id="addPageAfterBtn">
+          <button type="button" class="dropdown-item" id="addPageAfterBtn">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
             Add Blank Page After
           </button>
           <div class="dropdown-divider"></div>
-          <button class="dropdown-item" id="extractPagesBtn">
+          <button type="button" class="dropdown-item" id="extractPagesBtn">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Extract Pages…
+            Extract Pages&#8230;
           </button>
           <div class="dropdown-divider"></div>
-          <button class="dropdown-item item-danger" id="deletePageBtn">
+          <button type="button" class="dropdown-item item-danger" id="deletePageBtn">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
             Delete Current Page
           </button>
           <div class="dropdown-divider"></div>
-          <button class="dropdown-item" id="scannerBtn">
+          <button type="button" class="dropdown-item" id="scannerBtn">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            Create from Scanner…
+            Create from Scanner&#8230;
           </button>
         </div>
       </div>
@@ -86,37 +86,37 @@
     <!-- Center: Page controls + Zoom -->
     <div class="toolbar-center">
       <div class="page-controls">
-        <button class="btn btn-icon" id="prevBtn" title="Previous page" disabled>
+        <button type="button" class="btn btn-icon" id="prevBtn" title="Previous page" aria-label="Previous page" disabled>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="15 18 9 12 15 6"/>
           </svg>
         </button>
         <div class="page-input-wrap">
-          <input type="number" id="pageInput" min="1" value="1" disabled title="Current page" />
+          <input type="number" id="pageInput" min="1" value="1" disabled title="Current page" aria-label="Current page" />
           <span class="page-sep">/</span>
           <span id="totalPages">0</span>
         </div>
-        <button class="btn btn-icon" id="nextBtn" title="Next page" disabled>
+        <button type="button" class="btn btn-icon" id="nextBtn" title="Next page" aria-label="Next page" disabled>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="9 18 15 12 9 6"/>
           </svg>
         </button>
       </div>
       <div class="zoom-controls">
-        <button class="btn btn-icon" id="zoomOutBtn" title="Zoom out" disabled>
+        <button type="button" class="btn btn-icon" id="zoomOutBtn" title="Zoom out" aria-label="Zoom out" disabled>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
             <line x1="8" y1="11" x2="14" y2="11"/>
           </svg>
         </button>
         <span id="zoomLabel" class="zoom-label">100%</span>
-        <button class="btn btn-icon" id="zoomInBtn" title="Zoom in" disabled>
+        <button type="button" class="btn btn-icon" id="zoomInBtn" title="Zoom in" aria-label="Zoom in" disabled>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
             <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
           </svg>
         </button>
-        <button class="btn btn-icon" id="fitBtn" title="Fit to window" disabled>
+        <button type="button" class="btn btn-icon" id="fitBtn" title="Fit to window" aria-label="Fit to window" disabled>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
           </svg>
@@ -126,14 +126,14 @@
 
     <!-- Right: History -->
     <div class="toolbar-right">
-      <button class="btn btn-icon" id="undoBtn" title="Undo (Ctrl+Z)" disabled>
+      <button type="button" class="btn btn-icon" id="undoBtn" title="Undo (Ctrl+Z)" disabled>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="1 4 1 10 7 10"/>
           <path d="M3.51 15a9 9 0 1 0 .49-4.5"/>
         </svg>
         Undo
       </button>
-      <button class="btn btn-icon" id="redoBtn" title="Redo (Ctrl+Y)" disabled>
+      <button type="button" class="btn btn-icon" id="redoBtn" title="Redo (Ctrl+Y)" disabled>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="23 4 23 10 17 10"/>
           <path d="M20.49 15a9 9 0 1 1-.49-4.5"/>
@@ -146,13 +146,13 @@
   <!-- Tool Palette Row -->
   <div class="tool-palette" id="toolPalette">
     <div class="tools-group">
-      <button class="tool-btn active" data-tool="select" title="Select (V)">
+      <button type="button" class="tool-btn active" data-tool="select" title="Select (V)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M5 3l14 9-7 1-4 7z"/>
         </svg>
         <span>Select</span>
       </button>
-      <button class="tool-btn" data-tool="text" title="Text (T)">
+      <button type="button" class="tool-btn" data-tool="text" title="Text (T)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="4 7 4 4 20 4 20 7"/>
           <line x1="9" y1="20" x2="15" y2="20"/>
@@ -160,7 +160,7 @@
         </svg>
         <span>Text</span>
       </button>
-      <button class="tool-btn" data-tool="pen" title="Pen (P)">
+      <button type="button" class="tool-btn" data-tool="pen" title="Pen (P)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M12 19l7-7 3 3-7 7-3-3z"/>
           <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>
@@ -169,7 +169,7 @@
         </svg>
         <span>Pen</span>
       </button>
-      <button class="tool-btn" data-tool="highlighter" title="Highlighter (H)">
+      <button type="button" class="tool-btn" data-tool="highlighter" title="Highlighter (H)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="9" y1="3" x2="15" y2="3"/>
           <line x1="9" y1="21" x2="15" y2="21"/>
@@ -178,32 +178,32 @@
         </svg>
         <span>Highlight</span>
       </button>
-      <button class="tool-btn" data-tool="rect" title="Rectangle (R)">
+      <button type="button" class="tool-btn" data-tool="rect" title="Rectangle (R)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
         </svg>
         <span>Rect</span>
       </button>
-      <button class="tool-btn" data-tool="circle" title="Circle (C)">
+      <button type="button" class="tool-btn" data-tool="circle" title="Circle (C)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="10"/>
         </svg>
         <span>Circle</span>
       </button>
-      <button class="tool-btn" data-tool="line" title="Line (L)">
+      <button type="button" class="tool-btn" data-tool="line" title="Line (L)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="3" y1="21" x2="21" y2="3"/>
         </svg>
         <span>Line</span>
       </button>
-      <button class="tool-btn" data-tool="arrow" title="Arrow (A)">
+      <button type="button" class="tool-btn" data-tool="arrow" title="Arrow (A)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="5" y1="19" x2="19" y2="5"/>
           <polyline points="13 5 19 5 19 11"/>
         </svg>
         <span>Arrow</span>
       </button>
-      <button class="tool-btn" data-tool="eraser" title="Eraser (E)">
+      <button type="button" class="tool-btn" data-tool="eraser" title="Eraser (E)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M20 20H7L3 16l10-10 7 7-1.5 1.5"/>
           <path d="M6.5 17.5l5-5"/>
@@ -211,14 +211,14 @@
         <span>Eraser</span>
       </button>
       <div class="tool-sep"></div>
-      <button class="tool-btn" data-tool="signature" title="Signature (I)">
+      <button type="button" class="tool-btn" data-tool="signature" title="Signature (I)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M3 17c2-2 4-4.5 6.5-5s4.5 2 6.5 0 4-4 5-5"/>
           <path d="M3 20h18"/>
         </svg>
         <span>Sign</span>
       </button>
-      <button class="tool-btn" data-tool="stamp" title="Stamp (M)">
+      <button type="button" class="tool-btn" data-tool="stamp" title="Stamp (M)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M5 22h14"/><path d="M12 22v-6"/>
           <path d="M18 9c0-3.31-2.69-6-6-6S6 5.69 6 9c0 2.01.99 3.79 2.5 4.87V17h7v-3.13C17.01 12.79 18 11.01 18 9z"/>
@@ -248,7 +248,7 @@
   <!-- Main layout -->
   <div class="main-layout">
     <!-- Thumbnail sidebar -->
-    <aside class="sidebar" id="sidebar">
+    <aside class="sidebar" id="sidebar" aria-label="Page thumbnails">
       <div class="sidebar-header">Pages</div>
       <div class="thumb-container" id="thumbContainer"></div>
     </aside>
@@ -276,7 +276,7 @@
     </main>
 
     <!-- Properties panel -->
-    <aside class="props-panel" id="propsPanel">
+    <aside class="props-panel" id="propsPanel" aria-label="Annotation properties">
       <div class="props-header">Properties</div>
       <div class="props-body" id="propsBody">
         <p class="props-empty">No annotation selected</p>
@@ -295,13 +295,13 @@
     <div class="modal">
       <div class="modal-header">
         <h3>Signature</h3>
-        <button class="modal-close" id="sigModalClose">&times;</button>
+        <button type="button" class="modal-close" id="sigModalClose" aria-label="Close">&times;</button>
       </div>
       <div class="modal-body">
         <div class="sig-tabs">
-          <button class="sig-tab active" data-sigtab="draw">Draw</button>
-          <button class="sig-tab" data-sigtab="type">Type</button>
-          <button class="sig-tab" data-sigtab="upload">Upload</button>
+          <button type="button" class="sig-tab active" data-sigtab="draw">Draw</button>
+          <button type="button" class="sig-tab" data-sigtab="type">Type</button>
+          <button type="button" class="sig-tab" data-sigtab="upload">Upload</button>
         </div>
         <!-- Draw tab -->
         <div class="sig-tab-pane" id="sigPaneDraw">
@@ -311,12 +311,12 @@
             <input type="color" id="sigColor" value="#000066">
             <label class="opt-label">Width</label>
             <input type="range" id="sigWidth" min="1" max="8" value="2" style="width:70px">
-            <button class="btn btn-secondary btn-sm" id="sigClearBtn">Clear</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="sigClearBtn">Clear</button>
           </div>
         </div>
         <!-- Type tab -->
         <div class="sig-tab-pane" id="sigPaneType" style="display:none;">
-          <input type="text" id="sigTypeText" class="sig-type-input" placeholder="Type your name…">
+          <input type="text" id="sigTypeText" class="sig-type-input" placeholder="Type your name&#8230;">
           <div class="sig-type-options">
             <label class="opt-label">Font</label>
             <select id="sigTypeFont" class="form-select">
@@ -337,12 +337,12 @@
             <p>Drop image or click to select</p>
             <input type="file" id="sigUploadInput" accept="image/*" hidden>
           </div>
-          <img id="sigUploadPreview" class="sig-upload-preview" style="display:none;">
+          <img id="sigUploadPreview" src="" alt="Signature preview" class="sig-upload-preview" style="display:none;">
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" id="sigCancelBtn">Cancel</button>
-        <button class="btn btn-primary"   id="sigOkBtn">Place Signature</button>
+        <button type="button" class="btn btn-secondary" id="sigCancelBtn">Cancel</button>
+        <button type="button" class="btn btn-primary"   id="sigOkBtn">Place Signature</button>
       </div>
     </div>
   </div>
@@ -352,7 +352,7 @@
     <div class="modal modal-wide">
       <div class="modal-header">
         <h3>Company Stamp</h3>
-        <button class="modal-close" id="stampModalClose">&times;</button>
+        <button type="button" class="modal-close" id="stampModalClose" aria-label="Close">&times;</button>
       </div>
       <div class="modal-body">
         <div class="stamp-layout">
@@ -397,8 +397,8 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" id="stampCancelBtn">Cancel</button>
-        <button class="btn btn-primary"   id="stampOkBtn">Place Stamp</button>
+        <button type="button" class="btn btn-secondary" id="stampCancelBtn">Cancel</button>
+        <button type="button" class="btn btn-primary"   id="stampOkBtn">Place Stamp</button>
       </div>
     </div>
   </div>
@@ -408,20 +408,20 @@
     <div class="modal">
       <div class="modal-header">
         <h3>Extract Pages</h3>
-        <button class="modal-close" id="extractModalClose">&times;</button>
+        <button type="button" class="modal-close" id="extractModalClose" aria-label="Close">&times;</button>
       </div>
       <div class="modal-body">
         <p class="modal-hint">Select which pages to extract into a new PDF file.</p>
         <div class="extract-sel-row">
-          <button class="btn btn-secondary btn-sm" id="extractSelAll">All</button>
-          <button class="btn btn-secondary btn-sm" id="extractSelNone">None</button>
-          <button class="btn btn-secondary btn-sm" id="extractSelCurrent">Current</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="extractSelAll">All</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="extractSelNone">None</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="extractSelCurrent">Current</button>
         </div>
         <div class="extract-grid" id="extractGrid"></div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" id="extractCancelBtn">Cancel</button>
-        <button class="btn btn-primary"   id="extractOkBtn">Extract</button>
+        <button type="button" class="btn btn-secondary" id="extractCancelBtn">Cancel</button>
+        <button type="button" class="btn btn-primary"   id="extractOkBtn">Extract</button>
       </div>
     </div>
   </div>
@@ -431,28 +431,28 @@
     <div class="modal modal-wide">
       <div class="modal-header">
         <h3>Create PDF from Scanner / Images</h3>
-        <button class="modal-close" id="scannerModalClose">&times;</button>
+        <button type="button" class="modal-close" id="scannerModalClose" aria-label="Close">&times;</button>
       </div>
       <div class="modal-body">
         <div class="upload-zone" id="scannerDropZone">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#4f8ef7" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
           <p>Drop image files here or click to select</p>
           <input type="file" id="scannerInput" accept="image/*" multiple hidden>
-          <button class="btn btn-primary btn-sm" id="scannerSelectBtn">Select Images</button>
+          <button type="button" class="btn btn-primary btn-sm" id="scannerSelectBtn">Select Images</button>
         </div>
         <div class="scanner-grid" id="scannerGrid"></div>
         <div class="scanner-opts" id="scannerOpts" style="display:none;">
           <label class="opt-label">Page Size</label>
           <select id="scannerPageSize" class="form-select">
             <option value="fit">Fit to Image</option>
-            <option value="a4">A4 (595 × 842 pt)</option>
-            <option value="letter">US Letter (612 × 792 pt)</option>
+            <option value="a4">A4 (595 x 842 pt)</option>
+            <option value="letter">US Letter (612 x 792 pt)</option>
           </select>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" id="scannerCancelBtn">Cancel</button>
-        <button class="btn btn-primary"   id="scannerCreateBtn" disabled>Create PDF</button>
+        <button type="button" class="btn btn-secondary" id="scannerCancelBtn">Cancel</button>
+        <button type="button" class="btn btn-primary"   id="scannerCreateBtn" disabled>Create PDF</button>
       </div>
     </div>
   </div>
