@@ -1,0 +1,123 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  validate-pdf-editor:
+    name: Validate PDF Editor
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── JavaScript syntax check ────────────────────────────────────
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Check JS syntax
+        run: node --check pdf-editor/app.js && echo "✅ app.js syntax OK"
+
+      # ── HTML validation ────────────────────────────────────────────
+      - name: Install html-validate
+        run: npm install -g html-validate
+
+      - name: Validate HTML
+        run: |
+          cat > /tmp/.htmlvalidate.json << 'EOF'
+          {
+            "extends": ["html-validate:recommended"],
+            "rules": {
+              "require-sri": 0,
+              "no-inline-style": 0,
+              "wcag/h30": 0,
+              "wcag/h32": 0,
+              "wcag/h36": 0,
+              "wcag/h37": 0,
+              "wcag/h67": 0,
+              "heading-level": 0,
+              "no-missing-references": 0,
+              "attr-quotes": 0,
+              "void-style": 0,
+              "element-required-attributes": 0,
+              "attribute-allowed-values": 0
+            }
+          }
+          EOF
+          html-validate --config /tmp/.htmlvalidate.json pdf-editor/index.html \
+            && echo "✅ index.html valid"
+
+      # ── CSS lint ───────────────────────────────────────────────────
+      - name: Install stylelint
+        run: npm install -g stylelint stylelint-config-standard
+
+      - name: Lint CSS
+        run: |
+          cat > /tmp/.stylelintrc.json << 'EOF'
+          {
+            "extends": "stylelint-config-standard",
+            "rules": {
+              "color-no-invalid-hex": true,
+              "no-duplicate-selectors": true,
+              "declaration-block-no-duplicate-properties": true,
+              "alpha-value-notation": null,
+              "color-function-notation": null,
+              "color-function-alias-notation": null,
+              "import-notation": null,
+              "selector-class-pattern": null,
+              "selector-id-pattern": null,
+              "custom-property-pattern": null,
+              "keyframes-name-pattern": null,
+              "media-feature-range-notation": null,
+              "declaration-empty-line-before": null,
+              "comment-empty-line-before": null,
+              "rule-empty-line-before": null,
+              "at-rule-empty-line-before": null,
+              "no-empty-source": null,
+              "declaration-block-single-line-max-declarations": null,
+              "property-no-vendor-prefix": null
+            }
+          }
+          EOF
+          stylelint --config /tmp/.stylelintrc.json pdf-editor/style.css \
+            && echo "✅ style.css lint OK"
+
+      # ── File size guard ────────────────────────────────────────────
+      - name: Check file sizes
+        run: |
+          MAX_JS=300
+          MAX_CSS=100
+          MAX_HTML=50
+
+          check() {
+            local file=$1 max=$2 label=$3
+            local kb=$(( $(wc -c < "$file") / 1024 ))
+            echo "$label: ${kb}KB (limit ${max}KB)"
+            [ "$kb" -le "$max" ] || { echo "❌ $label exceeds ${max}KB limit"; exit 1; }
+          }
+
+          check pdf-editor/app.js    $MAX_JS  "app.js"
+          check pdf-editor/style.css $MAX_CSS "style.css"
+          check pdf-editor/index.html $MAX_HTML "index.html"
+          echo "✅ All files within size limits"
+
+      # ── Structure check ────────────────────────────────────────────
+      - name: Verify required files exist
+        run: |
+          for f in pdf-editor/index.html pdf-editor/style.css pdf-editor/app.js; do
+            [ -f "$f" ] && echo "✅ $f exists" || { echo "❌ $f missing"; exit 1; }
+          done
+
+      # ── Summary ───────────────────────────────────────────────────
+      - name: CI summary
+        run: |
+          echo ""
+          echo "========================================"
+          echo "  PDF Editor CI — all checks passed ✅"
+          echo "========================================"
