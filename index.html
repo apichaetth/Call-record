@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>POCO ใบเสร็จ</title>
+  <meta name="theme-color" content="#0f6e56">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="ใบเสร็จ">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>ใบเสร็จ</h1>
+    <div class="topbar-actions">
+      <button id="authBtn" class="chip" type="button">เข้าสู่ระบบ Google</button>
+      <button id="settingsBtn" class="icon-btn" type="button" aria-label="ตั้งค่า">⚙︎</button>
+    </div>
+  </header>
+
+  <main>
+    <div id="banner" class="banner" hidden></div>
+
+    <section class="modes">
+      <button id="cameraBtn" class="mode-btn primary" type="button">
+        <span class="mode-icon">📷</span>
+        <span class="mode-title">ถ่ายรูปใบเสร็จ</span>
+        <span class="mode-sub">ถ่ายแล้วอ่านยอดและส่งขึ้น Drive ทันที</span>
+      </button>
+      <button id="albumBtn" class="mode-btn" type="button">
+        <span class="mode-icon">🖼️</span>
+        <span class="mode-title">สแกนบิลจากอัลบั้ม</span>
+        <span class="mode-sub">เลือกรูปบิลบริษัทในเครื่อง ได้หลายใบ ตรวจก่อนส่ง</span>
+      </button>
+      <input id="cameraInput" type="file" accept="image/*" capture="environment" hidden>
+      <input id="albumInput" type="file" accept="image/*" multiple hidden>
+    </section>
+
+    <section class="list-head">
+      <h2>รายการ</h2>
+      <div class="list-actions">
+        <button id="sendAllBtn" class="chip" type="button" hidden>ส่งที่ค้างทั้งหมด</button>
+        <button id="clearDoneBtn" class="chip ghost" type="button" hidden>ล้างที่ส่งแล้ว</button>
+      </div>
+    </section>
+    <ul id="list" class="list"></ul>
+    <p id="empty" class="empty">ยังไม่มีใบเสร็จ — กดปุ่มด้านบนเพื่อเริ่ม</p>
+  </main>
+
+  <dialog id="settings">
+    <form method="dialog" class="settings-form">
+      <h2>ตั้งค่า</h2>
+      <label>Google OAuth Client ID
+        <input id="sClientId" type="text" autocomplete="off" placeholder="xxxx.apps.googleusercontent.com">
+      </label>
+      <label>ลิงก์หรือ ID โฟลเดอร์ใน Shared Drive
+        <input id="sFolder" type="text" autocomplete="off" placeholder="https://drive.google.com/drive/folders/...">
+      </label>
+      <p class="hint">แอปจะสร้างโฟลเดอร์ย่อยรายเดือน (เช่น 2026-11) ในโฟลเดอร์นี้ให้เอง</p>
+      <label class="row">
+        <input id="sAutoSend" type="checkbox"> ถ่ายรูปแล้วส่งทันทีหลังอ่านยอด (โหมดกล้อง)
+      </label>
+      <fieldset disabled>
+        <legend>POCO System (เร็วๆ นี้)</legend>
+        <label>ปลายทาง POCO System
+          <input type="text" placeholder="รอข้อมูลการเชื่อมต่อ">
+        </label>
+      </fieldset>
+      <div class="dialog-actions">
+        <button id="sCheck" type="button" class="chip ghost">ทดสอบโฟลเดอร์</button>
+        <button value="save" class="chip">บันทึก</button>
+      </div>
+      <p id="sStatus" class="hint"></p>
+    </form>
+  </dialog>
+
+  <template id="itemTpl">
+    <li class="item">
+      <div class="item-top">
+        <img class="thumb" alt="รูปใบเสร็จ">
+        <div class="item-meta">
+          <span class="status"></span>
+          <span class="filename"></span>
+          <span class="mode-tag"></span>
+        </div>
+      </div>
+      <div class="fields">
+        <label>ร้าน/ผู้ขาย <input data-f="vendor" type="text"></label>
+        <label>วันที่ <input data-f="date" type="date"></label>
+        <label>ยอดรวม (บาท) <input data-f="total" type="text" inputmode="decimal"></label>
+        <label>VAT (บาท) <input data-f="vat" type="text" inputmode="decimal"></label>
+        <label>เลขผู้เสียภาษี <input data-f="taxId" type="text" inputmode="numeric"></label>
+        <label>เลขที่บิล <input data-f="receiptNo" type="text"></label>
+        <label class="wide">หมายเหตุ <input data-f="note" type="text"></label>
+      </div>
+      <div class="item-actions">
+        <button data-a="send" class="chip" type="button">ส่งขึ้น Drive</button>
+        <button data-a="save" class="chip ghost" type="button">บันทึกรูป</button>
+        <a data-a="open" class="chip ghost" target="_blank" rel="noopener" hidden>เปิดใน Drive</a>
+        <button data-a="ocr" class="chip ghost" type="button">อ่านใหม่</button>
+        <button data-a="del" class="chip danger" type="button">ลบ</button>
+      </div>
+    </li>
+  </template>
+
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js" defer></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="ocr-parse.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
