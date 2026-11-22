@@ -1,0 +1,15 @@
+{
+  "name": "POCO ใบเสร็จ",
+  "short_name": "ใบเสร็จ",
+  "description": "ถ่ายหรือสแกนใบเสร็จ อ่านยอดอัตโนมัติ และส่งขึ้น Google Shared Drive",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f6f4",
+  "theme_color": "#0f6e56",
+  "lang": "th",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
