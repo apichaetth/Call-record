@@ -1,7 +1,7 @@
 {
   "name": "POCO ใบเสร็จ",
   "short_name": "ใบเสร็จ",
-  "description": "ถ่ายหรือสแกนใบเสร็จ อ่านยอดอัตโนมัติ และส่งขึ้น Google Shared Drive",
+  "description": "ถ่ายหรือสแกนใบเสร็จ อ่านยอดอัตโนมัติ และส่งขึ้น pCloud",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

@@ -18,7 +18,7 @@
   <header class="topbar">
     <h1>ใบเสร็จ</h1>
     <div class="topbar-actions">
-      <button id="authBtn" class="chip" type="button">เข้าสู่ระบบ Google</button>
+      <button id="authBtn" class="chip" type="button">เข้าสู่ระบบ pCloud</button>
       <button id="settingsBtn" class="icon-btn" type="button" aria-label="ตั้งค่า">⚙︎</button>
     </div>
   </header>
@@ -30,7 +30,7 @@
       <button id="cameraBtn" class="mode-btn primary" type="button">
         <span class="mode-icon">📷</span>
         <span class="mode-title">ถ่ายรูปใบเสร็จ</span>
-        <span class="mode-sub">ถ่ายแล้วอ่านยอดและส่งขึ้น Drive ทันที</span>
+        <span class="mode-sub">ถ่ายแล้วอ่านยอดและส่งขึ้น pCloud ทันที</span>
       </button>
       <button id="albumBtn" class="mode-btn" type="button">
         <span class="mode-icon">🖼️</span>
@@ -45,6 +45,7 @@
       <h2>รายการ</h2>
       <div class="list-actions">
         <button id="sendAllBtn" class="chip" type="button" hidden>ส่งที่ค้างทั้งหมด</button>
+        <button id="csvBtn" class="chip ghost" type="button" hidden>สรุป CSV</button>
         <button id="clearDoneBtn" class="chip ghost" type="button" hidden>ล้างที่ส่งแล้ว</button>
       </div>
     </section>
@@ -55,13 +56,13 @@
   <dialog id="settings">
     <form method="dialog" class="settings-form">
       <h2>ตั้งค่า</h2>
-      <label>Google OAuth Client ID
-        <input id="sClientId" type="text" autocomplete="off" placeholder="xxxx.apps.googleusercontent.com">
+      <label>pCloud Client ID
+        <input id="sClientId" type="text" autocomplete="off" placeholder="Client ID จาก pCloud My applications">
       </label>
-      <label>ลิงก์หรือ ID โฟลเดอร์ใน Shared Drive
-        <input id="sFolder" type="text" autocomplete="off" placeholder="https://drive.google.com/drive/folders/...">
+      <label>โฟลเดอร์ใน pCloud
+        <input id="sFolder" type="text" autocomplete="off" placeholder="/ใบเสร็จ">
       </label>
-      <p class="hint">แอปจะสร้างโฟลเดอร์ย่อยรายเดือน (เช่น 2026-11) ในโฟลเดอร์นี้ให้เอง</p>
+      <p class="hint">ถ้ายังไม่มีโฟลเดอร์ แอปจะสร้างให้ และแยกโฟลเดอร์ย่อยรายเดือน (เช่น /ใบเสร็จ/2026-11)</p>
       <label class="row">
         <input id="sAutoSend" type="checkbox"> ถ่ายรูปแล้วส่งทันทีหลังอ่านยอด (โหมดกล้อง)
       </label>
@@ -72,7 +73,8 @@
         </label>
       </fieldset>
       <div class="dialog-actions">
-        <button id="sCheck" type="button" class="chip ghost">ทดสอบโฟลเดอร์</button>
+        <button id="sSignOut" type="button" class="chip danger">ออกจากระบบ</button>
+        <button id="sCheck" type="button" class="chip ghost">ทดสอบ</button>
         <button value="save" class="chip">บันทึก</button>
       </div>
       <p id="sStatus" class="hint"></p>
@@ -99,9 +101,9 @@
         <label class="wide">หมายเหตุ <input data-f="note" type="text"></label>
       </div>
       <div class="item-actions">
-        <button data-a="send" class="chip" type="button">ส่งขึ้น Drive</button>
+        <button data-a="send" class="chip" type="button">ส่งขึ้น pCloud</button>
         <button data-a="save" class="chip ghost" type="button">บันทึกรูป</button>
-        <a data-a="open" class="chip ghost" target="_blank" rel="noopener" hidden>เปิดใน Drive</a>
+        <a data-a="open" class="chip ghost" target="_blank" rel="noopener" hidden>เปิดใน pCloud</a>
         <button data-a="ocr" class="chip ghost" type="button">อ่านใหม่</button>
         <button data-a="del" class="chip danger" type="button">ลบ</button>
       </div>
@@ -109,7 +111,6 @@
   </template>
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js" defer></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="ocr-parse.js"></script>
   <script src="app.js"></script>
 </body>

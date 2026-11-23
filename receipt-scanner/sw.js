@@ -1,5 +1,5 @@
 // Offline shell + cache for the OCR engine and Thai/English language data.
-const VERSION = 'rs-v1';
+const VERSION = 'rs-v2';
 const SHELL = ['./', 'index.html', 'styles.css', 'app.js', 'ocr-parse.js', 'manifest.json', 'icons/icon-192.png', 'icons/icon-180.png'];
 const CDN = /^https:\/\/(cdn\.jsdelivr\.net|tessdata\.projectnaptha\.com)\//;
 
@@ -35,5 +35,5 @@ self.addEventListener('fetch', e => {
       return res;
     })));
   }
-  // Everything else (Google sign-in, Drive API) goes straight to the network.
+  // Everything else (pCloud sign-in and API) goes straight to the network.
 });

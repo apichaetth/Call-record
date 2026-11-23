@@ -1,10 +1,7 @@
-/* POCO ใบเสร็จ — capture/scan receipts, OCR them, upload to a Google Shared Drive. */
+/* POCO ใบเสร็จ — capture/scan receipts, OCR them, upload to pCloud (one folder per month). */
 (function () {
   'use strict';
 
-  const SCOPE = 'https://www.googleapis.com/auth/drive';
-  const DRIVE = 'https://www.googleapis.com/drive/v3';
-  const UPLOAD = 'https://www.googleapis.com/upload/drive/v3/files';
   const MAX_SIDE = 2400;       // px; keeps text sharp while files stay ~0.5–1.5 MB
   const JPEG_QUALITY = 0.85;
 
@@ -17,6 +14,7 @@
     sendAllBtn: $('#sendAllBtn'), clearDoneBtn: $('#clearDoneBtn'),
     settings: $('#settings'), sClientId: $('#sClientId'), sFolder: $('#sFolder'),
     sAutoSend: $('#sAutoSend'), sCheck: $('#sCheck'), sStatus: $('#sStatus'),
+    sSignOut: $('#sSignOut'), csvBtn: $('#csvBtn'),
   };
 
   /* ---------- settings ---------- */
@@ -26,16 +24,9 @@
   };
   const settings = {
     get clientId() { return store.get('clientId', ''); },
-    get folderId() { return store.get('folderId', ''); },
+    get folderPath() { return store.get('folderPath', '/ใบเสร็จ'); },
     get autoSend() { return store.get('autoSend', true); },
   };
-
-  function parseFolderId(input) {
-    const s = String(input || '').trim();
-    const m = s.match(/folders\/([\w-]{10,})/) || s.match(/[?&]id=([\w-]{10,})/);
-    if (m) return m[1];
-    return /^[\w-]{10,}$/.test(s) ? s : '';
-  }
 
   /* ---------- IndexedDB ---------- */
   let dbPromise;
@@ -157,116 +148,112 @@
     if (item.mode === 'camera' && settings.autoSend) sendItem(item.id, { interactive: false });
   }
 
-  /* ---------- Google auth ---------- */
-  let tokenClient = null;
-  let pendingAfterAuth = [];
+  /* ---------- pCloud auth (OAuth implicit flow, full-page redirect) ---------- */
+  const PCLOUD_AUTH = 'https://my.pcloud.com/oauth2/authorize';
+  const API_HOSTS = { 1: 'api.pcloud.com', 2: 'eapi.pcloud.com' };  // 1 = US, 2 = EU account
+  const WEB_HOSTS = { 1: 'my.pcloud.com', 2: 'e.pcloud.com' };
+  const AUTH_ERRORS = new Set([1000, 2000, 2094, 2095]);              // login required / bad or revoked token
 
-  function token() {
-    const t = store.get('token', null);
-    return t && t.exp > Date.now() + 60000 ? t.value : '';
+  function auth() {
+    const a = store.get('pcloud', null);
+    return a && a.token ? a : null;
   }
 
-  function initTokenClient() {
-    if (tokenClient || !settings.clientId || !(window.google && google.accounts && google.accounts.oauth2)) return !!tokenClient;
-    tokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: settings.clientId,
-      scope: SCOPE,
-      callback: resp => {
-        if (resp.error) { showBanner('เข้าสู่ระบบไม่สำเร็จ: ' + resp.error); pendingAfterAuth = []; return; }
-        store.set('token', { value: resp.access_token, exp: Date.now() + (Number(resp.expires_in) || 3600) * 1000 });
-        updateAuthUi();
-        const fns = pendingAfterAuth; pendingAfterAuth = [];
-        fns.forEach(fn => fn());
-      },
-      error_callback: err => {
-        pendingAfterAuth = [];
-        showBanner(err && err.type === 'popup_closed' ? 'ปิดหน้าต่างเข้าสู่ระบบก่อนเสร็จ' :
-          'เปิดหน้าต่างเข้าสู่ระบบไม่ได้ ถ้าใช้จากหน้าจอโฮม ลองเปิดแอปผ่าน Safari แทน');
-      },
-    });
+  function appUrl() {
+    return location.origin + location.pathname;
+  }
+
+  // Must be called from a tap. Leaves the page; boot() finishes the sign-in on return.
+  function signIn() {
+    if (!settings.clientId) { showBanner('ยังไม่ได้ใส่ pCloud Client ID ในตั้งค่า'); openSettings(); return; }
+    const state = uid();
+    store.set('oauthState', state);
+    location.href = PCLOUD_AUTH + '?' + qs({ client_id: settings.clientId, response_type: 'token', redirect_uri: appUrl(), state });
+  }
+
+  // Returns true when this page load is the redirect back from pCloud.
+  function finishSignIn() {
+    if (!/access_token=|error=/.test(location.hash)) return false;
+    const h = new URLSearchParams(location.hash.slice(1));
+    history.replaceState(null, '', appUrl());
+    const expected = store.get('oauthState', '');
+    store.set('oauthState', '');
+    if (h.get('error')) { showBanner('เข้าสู่ระบบ pCloud ไม่สำเร็จ: ' + h.get('error')); return true; }
+    if (!expected || h.get('state') !== expected) { showBanner('การเข้าสู่ระบบไม่ตรงกับคำขอ ลองใหม่อีกครั้ง'); return true; }
+    store.set('pcloud', { token: h.get('access_token'), locationid: Number(h.get('locationid')) || 1 });
     return true;
   }
 
-  // Must be called from a tap so iOS allows the Google popup.
-  function withToken(fn) {
-    if (token()) { fn(); return; }
-    if (!settings.clientId) { showBanner('ยังไม่ได้ใส่ Google Client ID ในตั้งค่า'); openSettings(); return; }
-    if (!initTokenClient()) { showBanner('ระบบ Google ยังโหลดไม่เสร็จ ลองอีกครั้งในไม่กี่วินาที'); return; }
-    pendingAfterAuth.push(fn);
-    tokenClient.requestAccessToken({ prompt: store.get('signedInOnce', false) ? '' : 'consent' });
-    store.set('signedInOnce', true);
+  function signOut() {
+    store.set('pcloud', null);
+    Object.keys(localStorage).filter(k => k.startsWith('rs.folder.')).forEach(k => localStorage.removeItem(k));
+    updateAuthUi();
   }
 
   function updateAuthUi() {
-    const ok = !!token();
-    els.authBtn.textContent = ok ? 'เชื่อมต่อแล้ว' : 'เข้าสู่ระบบ Google';
+    const ok = !!auth();
+    els.authBtn.textContent = ok ? 'เชื่อมต่อ pCloud แล้ว' : 'เข้าสู่ระบบ pCloud';
     els.authBtn.classList.toggle('ghost', ok);
     refreshBanner();
   }
 
-  /* ---------- Google Drive ---------- */
+  /* ---------- pCloud API ---------- */
   class AuthError extends Error {}
-
-  async function drive(url, opts = {}) {
-    const t = token();
-    if (!t) throw new AuthError('ต้องเข้าสู่ระบบ Google');
-    const res = await fetch(url, { ...opts, headers: { ...(opts.headers || {}), Authorization: 'Bearer ' + t } });
-    if (res.status === 401) { store.set('token', null); updateAuthUi(); throw new AuthError('หมดเวลาเข้าสู่ระบบ'); }
-    if (!res.ok) {
-      let msg = res.status + '';
-      try { const j = await res.json(); msg = (j.error && j.error.message) || msg; } catch { /* not JSON */ }
-      if (res.status === 404) msg = 'ไม่พบโฟลเดอร์ หรือบัญชีนี้ไม่มีสิทธิ์ใน Shared Drive นั้น';
-      if (res.status === 403) msg = 'ไม่มีสิทธิ์เขียนในโฟลเดอร์นี้ (' + msg + ')';
-      throw new Error(msg);
-    }
-    return res.json();
-  }
-
   const qs = o => new URLSearchParams(o).toString();
-  const ALL = { supportsAllDrives: 'true' };
-  const LIST = { ...ALL, includeItemsFromAllDrives: 'true', corpora: 'allDrives' };
-  const esc = s => String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
-  function getFolder(id) {
-    return drive(DRIVE + '/files/' + encodeURIComponent(id) + '?' + qs({ ...ALL, fields: 'id,name,mimeType,driveId,capabilities(canAddChildren)' }));
+  async function pcloud(method, params = {}, body) {
+    const a = auth();
+    if (!a) throw new AuthError('ต้องเข้าสู่ระบบ pCloud');
+    const host = API_HOSTS[a.locationid] || API_HOSTS[1];
+    // Token goes in the query string: keeps requests "simple" for CORS, as the official SDK does.
+    const url = 'https://' + host + '/' + method + '?' + qs({ ...params, access_token: a.token });
+    let res;
+    try {
+      res = await fetch(url, body ? { method: 'POST', body } : {});
+    } catch {
+      throw new Error('เชื่อมต่อ pCloud ไม่ได้ (เช็กอินเทอร์เน็ต)');
+    }
+    const j = await res.json().catch(() => ({ result: res.status, error: 'HTTP ' + res.status }));
+    if (j.result !== 0) {
+      if (AUTH_ERRORS.has(j.result)) { signOut(); throw new AuthError('ต้องเข้าสู่ระบบ pCloud ใหม่'); }
+      throw new Error((j.error || 'ผิดพลาด') + ' (' + j.result + ')');
+    }
+    return j;
   }
 
-  async function ensureSubfolder(parentId, name) {
-    const cacheKey = 'folder.' + parentId + '.' + name;
-    const cached = store.get(cacheKey, '');
+  function folderSegments(path) {
+    return String(path || '').split('/').map(s => s.trim()).filter(Boolean);
+  }
+
+  // Walk/create the configured path, then the month folder. Returns the month folder's id.
+  async function ensureFolderPath(segments) {
+    const cacheKey = 'folder.' + segments.join('/');
+    const cached = store.get(cacheKey, 0);
     if (cached) return cached;
-    const q = "name = '" + esc(name) + "' and '" + esc(parentId) + "' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
-    const found = await drive(DRIVE + '/files?' + qs({ ...LIST, q, fields: 'files(id)', pageSize: '1' }));
-    let id = found.files && found.files[0] && found.files[0].id;
-    if (!id) {
-      const made = await drive(DRIVE + '/files?' + qs({ ...ALL, fields: 'id' }), {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, parents: [parentId], mimeType: 'application/vnd.google-apps.folder' }),
-      });
-      id = made.id;
+    let id = 0; // pCloud root
+    for (const name of segments) {
+      const r = await pcloud('createfolderifnotexists', { folderid: id, name });
+      id = r.metadata.folderid;
     }
     store.set(cacheKey, id);
     return id;
   }
 
-  async function findExisting(parentId, receiptId) {
-    const q = "'" + esc(parentId) + "' in parents and appProperties has { key='receiptId' and value='" + esc(receiptId) + "' } and trashed = false";
-    const r = await drive(DRIVE + '/files?' + qs({ ...LIST, q, fields: 'files(id,webViewLink)', pageSize: '1' }));
-    return r.files && r.files[0];
+  async function existingFile(folderid, name) {
+    const r = await pcloud('listfolder', { folderid, nofiles: 0, noshares: 1 });
+    return (r.metadata.contents || []).find(f => !f.isfolder && f.name === name);
   }
 
-  async function uploadJpeg(blob, meta) {
-    const boundary = 'rs' + uid();
-    const body = new Blob([
-      '--' + boundary + '\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n',
-      JSON.stringify(meta),
-      '\r\n--' + boundary + '\r\nContent-Type: image/jpeg\r\n\r\n',
-      blob,
-      '\r\n--' + boundary + '--',
-    ]);
-    return drive(UPLOAD + '?' + qs({ ...ALL, uploadType: 'multipart', fields: 'id,webViewLink' }), {
-      method: 'POST', headers: { 'Content-Type': 'multipart/related; boundary=' + boundary }, body,
-    });
+  async function uploadJpeg(blob, folderid, name) {
+    const form = new FormData();
+    form.append('file', blob, name);
+    const r = await pcloud('uploadfile', { folderid, nopartial: 1, renameifexists: 1 }, form);
+    return r.metadata[0];
+  }
+
+  function folderLink(folderid) {
+    const a = auth();
+    return 'https://' + (WEB_HOSTS[a && a.locationid] || WEB_HOSTS[1]) + '/#page=filemanager&folder=' + folderid;
   }
 
   /* ---------- naming & metadata ---------- */
@@ -288,13 +275,39 @@
     return parts.join('_') + '.jpg';
   }
 
-  function descriptionFor(item) {
-    const f = item.fields;
-    return [
-      ['ร้าน/ผู้ขาย', f.vendor], ['วันที่', f.date], ['ยอดรวม', f.total], ['VAT', f.vat],
-      ['เลขผู้เสียภาษี', f.taxId], ['เลขที่บิล', f.receiptNo], ['หมายเหตุ', f.note],
-      ['ที่มา', item.mode === 'camera' ? 'ถ่ายจากกล้อง' : 'สแกนจากอัลบั้ม'],
-    ].filter(([, v]) => v).map(([k, v]) => k + ': ' + v).join('\n');
+  /* ---------- CSV summary (pCloud has no per-file notes, so details travel in a CSV) ---------- */
+  const CSV_COLS = [
+    ['วันที่', i => i.fields.date], ['ร้าน/ผู้ขาย', i => i.fields.vendor], ['ยอดรวม', i => i.fields.total],
+    ['VAT', i => i.fields.vat], ['เลขผู้เสียภาษี', i => i.fields.taxId], ['เลขที่บิล', i => i.fields.receiptNo],
+    ['หมายเหตุ', i => i.fields.note], ['ชื่อไฟล์', i => i.fileName || fileNameFor(i)],
+    ['ที่มา', i => i.mode === 'camera' ? 'ถ่ายจากกล้อง' : 'สแกนจากอัลบั้ม'],
+    ['สถานะ', i => i.status === 'done' ? 'ส่งแล้ว' : 'ยังไม่ส่ง'],
+  ];
+
+  function csvFor(list) {
+    const cell = v => {
+      v = String(v == null ? '' : v);
+      // Text cells for long digit strings so Excel keeps tax IDs intact.
+      if (/^\d{10,}$/.test(v)) v = '="' + v + '"';
+      return /[",\n]/.test(v) || v.startsWith('=') ? '"' + v.replace(/"/g, '""') + '"' : v;
+    };
+    const rows = [CSV_COLS.map(c => c[0])].concat(list.map(i => CSV_COLS.map(c => c[1](i))));
+    return '\ufeff' + rows.map(r => r.map(cell).join(',')).join('\r\n'); // BOM: Excel reads Thai correctly
+  }
+
+  async function exportCsv() {
+    const list = [...items.values()].filter(i => i.blob).sort((a, b) =>
+      (a.fields.date || localDate(a.createdAt)).localeCompare(b.fields.date || localDate(b.createdAt)));
+    if (!list.length) return;
+    const name = 'สรุปใบเสร็จ_' + localDate(Date.now()) + '.csv';
+    const file = new File([csvFor(list)], name, { type: 'text/csv' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file] }); return; } catch (err) { if (err.name === 'AbortError') return; }
+    }
+    const url = URL.createObjectURL(file);
+    const a = document.createElement('a'); a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
   }
 
   /* ---------- POCO System (waiting for connection details) ---------- */
@@ -309,14 +322,9 @@
   function sendItem(id, { interactive }) {
     const item = items.get(id);
     if (!item || item.status === 'done' || sending.has(id)) return;
-    if (!settings.folderId) {
-      markReady(item, 'ยังไม่ได้ตั้งค่าโฟลเดอร์ Shared Drive');
-      if (interactive) openSettings();
-      return;
-    }
-    if (!token()) {
-      if (interactive) withToken(() => sendItem(id, { interactive: false }));
-      else markReady(item);
+    if (!auth()) {
+      markReady(item);
+      if (interactive) signIn(); // leaves the page; queued items are sent on return
       return;
     }
     doUpload(item);
@@ -335,22 +343,13 @@
     await save(item);
     try {
       const month = (item.fields.date || localDate(item.createdAt)).slice(0, 7);
-      const parent = await ensureSubfolder(settings.folderId, month);
+      const folderid = await ensureFolderPath(folderSegments(settings.folderPath).concat(month));
       const name = fileNameFor(item);
-      let file = await findExisting(parent, item.id);
-      if (!file) {
-        const f = item.fields;
-        file = await uploadJpeg(item.blob, {
-          name, parents: [parent], mimeType: 'image/jpeg', description: descriptionFor(item),
-          appProperties: {
-            receiptId: item.id, total: f.total || '', date: f.date || '', taxId: f.taxId || '',
-            mode: item.mode, pocoStatus: 'pending',
-          },
-        });
-      }
-      item.driveId = file.id;
-      item.driveLink = file.webViewLink || 'https://drive.google.com/file/d/' + file.id + '/view';
-      item.fileName = name;
+      // If an earlier attempt uploaded but the reply was lost, don't upload a second copy.
+      const file = (await existingFile(folderid, name)) || (await uploadJpeg(item.blob, folderid, name));
+      item.cloudId = file.fileid;
+      item.cloudLink = folderLink(folderid);
+      item.fileName = file.name || name;
       item.status = 'done';
       item.sentAt = Date.now();
       item.poco = (await sendToPoco(item)).skipped ? 'waiting' : 'sent';
@@ -369,10 +368,9 @@
     refreshBanner();
   }
 
-  function sendAllPending() {
-    withToken(() => {
-      for (const it of items.values()) if (it.status === 'ready' || it.status === 'error') sendItem(it.id, { interactive: false });
-    });
+  function sendAllPending(interactive) {
+    if (!auth()) { if (interactive) signIn(); return; }
+    for (const it of items.values()) if (it.status === 'ready' || it.status === 'error') sendItem(it.id, { interactive: false });
   }
 
   /* ---------- adding receipts ---------- */
@@ -414,9 +412,9 @@
     converting: ['กำลังแปลงรูป…', 'warn'],
     ocr: ['กำลังอ่านข้อความ…', 'warn'],
     review: ['ตรวจข้อมูลแล้วกดส่ง', 'warn'],
-    ready: ['รอส่ง (ต้องเข้าสู่ระบบ Google)', 'warn'],
-    uploading: ['กำลังส่งขึ้น Drive…', 'warn'],
-    done: ['ส่งขึ้น Drive แล้ว ✓', 'ok'],
+    ready: ['รอส่ง (ต้องเข้าสู่ระบบ pCloud)', 'warn'],
+    uploading: ['กำลังส่งขึ้น pCloud…', 'warn'],
+    done: ['ส่งขึ้น pCloud แล้ว ✓', 'ok'],
     error: ['ผิดพลาด', 'err'],
   };
 
@@ -467,13 +465,13 @@
     const send = li.querySelector('[data-a="send"]');
     send.hidden = item.status === 'done';
     send.disabled = busy;
-    send.textContent = item.status === 'error' ? 'ลองส่งอีกครั้ง' : 'ส่งขึ้น Drive';
+    send.textContent = item.status === 'error' ? 'ลองส่งอีกครั้ง' : 'ส่งขึ้น pCloud';
     li.querySelector('[data-a="save"]').disabled = !item.blob;
     li.querySelector('[data-a="ocr"]').hidden = item.status === 'done';
     li.querySelector('[data-a="ocr"]').disabled = busy || !item.blob;
     const open = li.querySelector('[data-a="open"]');
-    open.hidden = !item.driveLink;
-    if (item.driveLink) open.href = item.driveLink;
+    open.hidden = !item.cloudLink;
+    if (item.cloudLink) open.href = item.cloudLink;
     li.querySelector('[data-a="del"]').disabled = item.status === 'uploading';
 
     updateListChrome();
@@ -513,6 +511,7 @@
     els.empty.hidden = all.length > 0;
     els.sendAllBtn.hidden = !all.some(i => i.status === 'ready' || i.status === 'error');
     els.clearDoneBtn.hidden = !all.some(i => i.status === 'done');
+    els.csvBtn.hidden = !all.some(i => i.blob);
   }
 
   /* ---------- banner ---------- */
@@ -521,8 +520,8 @@
   function refreshBanner() {
     const waiting = [...items.values()].filter(i => i.status === 'ready').length;
     let msg = bannerMsg;
-    if (!msg && (!settings.clientId || !settings.folderId)) msg = 'เริ่มต้น: กด ⚙︎ เพื่อใส่ Google Client ID และโฟลเดอร์ Shared Drive';
-    else if (!msg && waiting && !token()) msg = 'มี ' + waiting + ' ใบรอส่ง — กด "เข้าสู่ระบบ Google" แล้วแอปจะส่งให้อัตโนมัติ';
+    if (!msg && !settings.clientId) msg = 'เริ่มต้น: กด ⚙︎ เพื่อใส่ pCloud Client ID และโฟลเดอร์ที่จะเก็บ';
+    else if (!msg && waiting && !auth()) msg = 'มี ' + waiting + ' ใบรอส่ง — กด "เข้าสู่ระบบ pCloud" แล้วแอปจะส่งให้อัตโนมัติ';
     els.banner.textContent = msg;
     els.banner.hidden = !msg;
     updateListChrome();
@@ -531,7 +530,7 @@
   /* ---------- settings dialog ---------- */
   function openSettings() {
     els.sClientId.value = settings.clientId;
-    els.sFolder.value = settings.folderId;
+    els.sFolder.value = settings.folderPath;
     els.sAutoSend.checked = settings.autoSend;
     els.sStatus.textContent = '';
     if (els.settings.showModal) els.settings.showModal(); else els.settings.setAttribute('open', '');
@@ -539,11 +538,11 @@
 
   function persistSettings() {
     const clientId = els.sClientId.value.trim();
-    if (clientId !== settings.clientId) { tokenClient = null; store.set('token', null); }
+    if (clientId !== settings.clientId) signOut();
     store.set('clientId', clientId);
-    const fid = parseFolderId(els.sFolder.value);
-    if (els.sFolder.value.trim() && !fid) { els.sStatus.textContent = 'อ่าน ID โฟลเดอร์จากลิงก์ไม่ได้'; return false; }
-    store.set('folderId', fid);
+    const segs = folderSegments(els.sFolder.value);
+    if (segs.some(x => /[\\:*?"<>|]/.test(x))) { els.sStatus.textContent = 'ชื่อโฟลเดอร์มีอักขระที่ใช้ไม่ได้'; return false; }
+    store.set('folderPath', '/' + segs.join('/'));
     store.set('autoSend', els.sAutoSend.checked);
     return true;
   }
@@ -553,34 +552,39 @@
     bannerMsg = '';
     updateAuthUi();
   });
-  els.sCheck.addEventListener('click', () => {
+  els.sCheck.addEventListener('click', async () => {
     if (!persistSettings()) return;
-    if (!settings.folderId) { els.sStatus.textContent = 'ใส่ลิงก์โฟลเดอร์ก่อน'; return; }
+    if (!settings.clientId) { els.sStatus.textContent = 'ใส่ Client ID ก่อน'; return; }
+    if (!auth()) { els.sStatus.textContent = 'กำลังไปหน้าเข้าสู่ระบบ pCloud…'; signIn(); return; }
     els.sStatus.textContent = 'กำลังตรวจ…';
-    withToken(async () => {
-      try {
-        const f = await getFolder(settings.folderId);
-        if (f.mimeType !== 'application/vnd.google-apps.folder') throw new Error('ลิงก์นี้ไม่ใช่โฟลเดอร์');
-        const canWrite = !f.capabilities || f.capabilities.canAddChildren !== false;
-        els.sStatus.textContent = (canWrite ? '✓ พบโฟลเดอร์ "' : '⚠ พบ "') + f.name + '"' +
-          (f.driveId ? ' (Shared Drive)' : ' (My Drive)') + (canWrite ? '' : ' แต่ไม่มีสิทธิ์เพิ่มไฟล์');
-      } catch (err) {
-        els.sStatus.textContent = '✗ ' + (err.message || err);
-      }
-    });
+    try {
+      const segs = folderSegments(settings.folderPath);
+      const id = await ensureFolderPath(segs);
+      const who = await pcloud('userinfo').catch(() => ({}));
+      els.sStatus.innerHTML = '';
+      els.sStatus.append('✓ พร้อมใช้: ' + (settings.folderPath) + (who.email ? ' (บัญชี ' + who.email + ')' : '') + ' ');
+      const link = document.createElement('a');
+      link.href = folderLink(id); link.target = '_blank'; link.rel = 'noopener'; link.textContent = 'เปิดดู';
+      els.sStatus.append(link);
+    } catch (err) {
+      els.sStatus.textContent = '✗ ' + (err.message || err);
+    }
   });
+  els.sSignOut.addEventListener('click', () => { signOut(); els.sStatus.textContent = 'ออกจากระบบ pCloud แล้ว'; });
 
   /* ---------- wiring ---------- */
   els.settingsBtn.addEventListener('click', openSettings);
   els.authBtn.addEventListener('click', () => {
     bannerMsg = '';
-    withToken(() => { updateAuthUi(); sendAllPending(); });
+    if (auth()) { openSettings(); return; }
+    signIn();
   });
   els.cameraBtn.addEventListener('click', () => els.cameraInput.click());
   els.albumBtn.addEventListener('click', () => els.albumInput.click());
   els.cameraInput.addEventListener('change', e => { addFiles(e.target.files, 'camera'); e.target.value = ''; });
   els.albumInput.addEventListener('change', e => { addFiles(e.target.files, 'album'); e.target.value = ''; });
-  els.sendAllBtn.addEventListener('click', sendAllPending);
+  els.sendAllBtn.addEventListener('click', () => sendAllPending(true));
+  els.csvBtn.addEventListener('click', exportCsv);
   els.clearDoneBtn.addEventListener('click', async () => {
     for (const it of [...items.values()]) {
       if (it.status !== 'done') continue;
@@ -592,6 +596,7 @@
   });
 
   async function boot() {
+    const returnedFromSignIn = finishSignIn();
     try {
       const all = await dbAll();
       all.sort((a, b) => a.createdAt - b.createdAt);
@@ -605,8 +610,7 @@
       showBanner('เปิดที่เก็บข้อมูลในเครื่องไม่ได้: ' + (err.message || err));
     }
     updateAuthUi();
-    // GIS loads async; set up the token client once it is there.
-    const t = setInterval(() => { if (initTokenClient() || !settings.clientId) clearInterval(t); }, 500);
+    if (returnedFromSignIn && auth()) sendAllPending(false);
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
   }
 
